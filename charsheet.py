@@ -23,7 +23,7 @@ class char:
 		reload(sys)
 		sys.setdefaultencoding('utf-8')
 		char = 'testsheet'
-		files = glob.glob('C:\\Users\\Jethro\\Desktop\\*.pdf')
+		files = glob.glob('..\\*.pdf')
 #		print files
 		charsheet = -1
 		for file in files:
