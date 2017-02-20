@@ -1,13 +1,13 @@
 import random as rand
 import sys
+import re
 
 
 exit_com = {'quit','exit','halt','end','cease','desist','stop',''}
 
 
 
-
-			#(number of dice)d(die type)
+				#(number of dice)d(die type)
 def roll(cmd):#returns -1 if error, 0 if exit, 1 if success
 	bonus = 0
 	if cmd in exit_com:
@@ -15,7 +15,19 @@ def roll(cmd):#returns -1 if error, 0 if exit, 1 if success
 	if 'd' not in cmd:
 		return -1
 	out = ['(' + cmd + '): [']
-	cmd = cmd.split('d')
+	parse = re.split('\+|-',cmd,1)
+	roll = parse[0]
+	if cmd.split(roll)[1][0] == '-':
+		parse = '-' + parse[1]
+
+	return -1	#for debugging the parsing
+
+
+
+
+
+
+
 	if '+' in cmd[1]:
 		bonus = int(cmd[1].split('+')[1])
 		cmd[1] = cmd[1].split('+')[0]
@@ -42,16 +54,12 @@ def roll(cmd):#returns -1 if error, 0 if exit, 1 if success
 	print ''.join(out), (total + bonus)
 	return 1
 
-
-
-
-
 while True:
 	run = -1
-	try:
-		run = roll(raw_input('> '))
-	except:
-		pass
+#	try:
+	run = roll(raw_input('> '))
+#	except:
+#		print 'You shouldn\'t see this'
 	if run == 0:
 		break
 sys.exit()
