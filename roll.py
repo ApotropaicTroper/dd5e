@@ -9,57 +9,52 @@ exit_com = {'quit','exit','halt','end','cease','desist','stop',''}
 
 				#(number of dice)d(die type)
 def roll(cmd):#returns -1 if error, 0 if exit, 1 if success
-	bonus = 0
 	if cmd in exit_com:
 		return 0
 	if 'd' not in cmd:
 		return -1
-	out = ['(' + cmd + '): [']
-	parse = re.split('\+|-',cmd,1)
-	roll = parse[0]
-	if cmd.split(roll)[1][0] == '-':
-		parse = '-' + parse[1]
+	cmd = re.sub(' *\+ *',' + ',cmd)
+	cmd = re.sub(' *- *',' - ',cmd) #formatting for output
 
-	return -1	#for debugging the parsing
+	out = ['(' + cmd + '): ['] #output string
+	parse = re.split(' \+ | - ',cmd,1)
+	dice = parse[0]
 
+	if len(parse) > 1:
+		if cmd.split(dice)[1][1] == '-': #if first modifier is a penalty, prefix with a minus sign
+			parse[1] = ' - ' + parse[1]
+		else:
+			parse[1] = ' + ' + parse[1]
 
+	dice = dice.split('d') #reduce function calls by casting these to ints once before loop
+	if dice[0] == '':
+		dice[0] = '1'
+	dice[0] = int(dice[0]) #number of dice to roll
+	dice[1] = int(dice[1]) #number of sides to the die (numbered 1 to n)
 
-
-
-
-
-	if '+' in cmd[1]:
-		bonus = int(cmd[1].split('+')[1])
-		cmd[1] = cmd[1].split('+')[0]
-	if '-' in cmd[1]:
-		bonus = -int(cmd[1].split('-')[1])
-		cmd[1] = cmd[1].split('-')[0]
-	if cmd[0] == '':
-		cmd[0] = '1'
-	cmd[0] = int(cmd[0]) #reduce function calls by casting these to ints once before loop
-	cmd[1] = int(cmd[1])
 	total = 0		#Rolling sum
-	for x in range(0,cmd[0]):
+	for x in range(0,dice[0]):
 		if x != 0:
-			out += ' + '
-		roll = rand.randint(1,cmd[1])
+			out += [' + ']
+		roll = rand.randint(1,dice[1])
 					#Conditions? to be added later, if at all.
 		total += roll
 		out += [str(roll)]
-	if bonus > 0:
-		out += ' + ' + str(bonus)
-	elif bonus < 0:
-		out += ' - ' + str(abs(bonus))
-	out += '] = '
-	print ''.join(out), (total + bonus)
+	if len(parse) > 1:
+		total += eval(parse[1])
+		out.extend([parse[1]])
+	out += ['] = ' + str(total)]
+	print ''.join(out)
 	return 1
+
+
 
 while True:
 	run = -1
-#	try:
-	run = roll(raw_input('> '))
-#	except:
-#		print 'You shouldn\'t see this'
+	try:
+		run = roll(raw_input('> '))
+	except:
+		print 'Malformed roll.\ne.g. 2d10+3-2'
 	if run == 0:
 		break
 sys.exit()
