@@ -1,16 +1,13 @@
 import random as rand
-import sys
-import re
+import sys, re, glob
 
 
-exit_com = {'quit','exit','halt','end','cease','desist','stop',''}
+exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 
 
 
 				#(number of dice)d(die type)
 def roll(cmd):#returns -1 if error, 0 if exit, 1 if success
-	if cmd in exit_com:
-		return 0
 	if 'd' not in cmd:
 		return -1
 	cmd = re.sub(' *\+ *',' + ',cmd)
@@ -51,8 +48,18 @@ def roll(cmd):#returns -1 if error, 0 if exit, 1 if success
 
 while True:
 	run = -1
+	command = raw_input('> ')
+	files = glob.glob('.\\Spells\\' + command + '.txt')
+	if len(files) > 0:
+		file = open(files[0])
+		for line in file:
+			print line,
+		file.close()
+		break
+	if command in exit_cmd:
+		break
 	try:
-		run = roll(raw_input('> '))
+		run = roll(command)
 	except:
 		print 'Malformed roll.\ne.g. 2d10+3-2'
 	if run == 0:
