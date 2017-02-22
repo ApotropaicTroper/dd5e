@@ -3,7 +3,7 @@ import sys, re, glob
 import charsheet
 
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
-
+Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
 
 
 				#(number of dice)d(die type)
@@ -44,18 +44,19 @@ def roll(cmd):#returns -1 if error, 0 if exit, 1 if success
 	print ''.join(out),
 	return 1
 
-#not all spells do damage, such as Comprehend Languages. These will not be implemented.
-def chromatic_orb():
+#Not all spells do damage, such as Comprehend Languages.
+# These will not be implemented except to be described with "info".
+def chromatic_orb(mod):
 	dmg = raw_input('Damage type? Fire/Cold/Lightning/Thunder/Acid/Poison\n')
 	slot = raw_input('Spell slot level? ')
-	roll('d20 + ' + str(char.Prof) + ' + ' + str(char.IntMod))
+	roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
 	if 'y' in raw_input('\nHit? ').lower():
 		roll(str(int(slot)+2) + 'd8')
-		print dmg + ' damage.'
+		print dmg + 'damage.'
 	else:
 		print 'Too bad!'	
 
-def eldritch_blast():
+def eldritch_blast(mod):
 	hits = -1
 	for x in range(0,(char.level+1)/6 + 1):
 		roll('d20 + ' + str(char.Prof) + ' + ' + str(char.ChrMod))
@@ -74,38 +75,40 @@ def eldritch_blast():
 		return -1
 	for x in range(0, hits):
 		roll('d10')
-		print ' force damage.'
+		print 'force damage.'
 
-def witchbolt():
+def witchbolt(mod):
 	slot = raw_input('Spell slot level? ')
-	roll('d20 + ' + str(char.Prof) + ' + ' + str(char.IntMod))
+	roll('d20 + ' + str(char.Prof + char.IntMod))
 	if 'y' in raw_input('\nHit? ').lower():
 		roll(slot + 'd12')
-		print ' lightning damage.'
+		print 'lightning damage.'
 	else:
 		print 'Too bad!'
 
 
-
-
 char = charsheet.char(raw_input('Name? '))
-
-print str(char.Prof+char.IntMod)
-
 while True:
 	run = -1
 	command = raw_input('> ')
-#	if 'info' in command:
-	#print spell description
-	files = glob.glob('.\\Spells\\' + command + '.txt')
-	if len(files) > 0:
-		file = open(files[0])
-#		for line in file:
-#			print line,
-		eval(command.lower().replace(' ','_') + '()')
+	if 'info' in command: 	#print spell description
+		files = glob.glob('.\\Spells\\' + command[5:] + '.txt')
+		if len(files) == 0:
+			char.toString()
+			continue
+		file = open(glob.glob('.\\Spells\\' + command[5:] + '.txt')[0])
+		for line in file:
+			print line,
 		file.close()
 		continue
-	if command in exit_cmd and 'y' in raw_input('Are you sure? y/n\n').lower():
+	files = glob.glob('.\\Spells\\' + command + '.txt')		#cast spell
+	if len(files) > 0:
+		file = open(files[0])
+		mod = char.CastScore
+		eval(command.lower().replace(' ','_') + '(\'' + mod + '\')')
+		file.close()
+		continue
+	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
 		break
 	try:
 		run = roll(command)
