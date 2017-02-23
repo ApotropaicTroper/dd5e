@@ -114,7 +114,7 @@ char = charsheet.char(raw_input('Name? '))
 while True:
 	run = -1
 	command = raw_input('> ')
-	command = command.replace(' ','')
+	command = command.replace(' ','').lower()
 	if 'info' in command: 	#print spell description
 		files = glob.glob('.\\Spells\\' + command[4:] + '.txt')
 		if len(files) == 0:
