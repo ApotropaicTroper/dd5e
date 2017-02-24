@@ -54,8 +54,6 @@ def chromaticorb(mod):
 			slot = int(raw_input('Spell slot level? '))
 		except:
 			print 'That must be a number!',
-		finally:
-			print '1-9'
 
 	roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
 	if 'y' in raw_input('\nHit? ').lower():
@@ -73,7 +71,7 @@ def eldritchblast(mod):
 		try:
 			hits = int(raw_input('How many hits? '))
 			if hits > (char.level+1)/6 + 1:
-				print 'That\'s too many!'
+				print 'Not enough beams!'
 				hits = -1
 				continue
 		except:
@@ -93,15 +91,72 @@ def firebolt(mod):
 	else:
 		print 'Too bad!'
 
+def lightningbolt(mod):
+	slot = 0
+	while slot < 3 or slot > 9:
+		try:
+			slot = int(raw_input('Spell slot level? '))
+		except:
+			print 'That must be a number, 3-9',
+	roll(str(slot+5) + 'd6')
+	print 'Lightning damage.'
+
+def magearmor(mod):
+	print 'AC becomes ' + str(13 + char.DexMod)
+
+def magicmissile(mod):
+	slot = 0
+	while slot < 1 or slot > 9:
+		try:
+			slot = int(raw_input('Spell slot level? '))
+		except:
+			print 'That must be a number, 1-9',
+	for x in range(0,slot+2):
+		roll('d4+1')
+		print 'Force damage.'
+
+def rayoffrost(mod):
+	roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
+	if 'y' in raw_input('\nHit? ').lower():
+		roll(str((char.level+1)/6 + 1) + 'd8')
+		print 'Cold damage.'
+	else:
+		print 'Too bad!'
+
+def scorchingray(mod):
+	slot = 0
+	while slot < 2 or slot > 9:
+		try:
+			slot = int(raw_input('Spell slot level? '))
+		except:
+			print 'That must be a number, 2-9',
+
+	for x in range(0,slot+1):
+		roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
+		print ''
+	hits = -1
+	while hits < 0:
+		try:
+			hits = int(raw_input('How many hits? '))
+			if hits > slot+1:
+				print 'Not enough beams!'
+				hits = -1
+		except:
+			print 'That\'s not a number!'
+	if hits == 0:
+		print 'Too bad!'
+		return -1
+	for x in range(0,hits):
+		roll('2d6')
+		print 'Fire damage.'	
+
 def witchbolt(mod):
 	slot = 0
 	while slot < 1 or slot > 9:
 		try:
 			slot = int(raw_input('Spell slot level? '))
 		except:
-			print 'That must be a number!',
-		finally:
-			print '1-9'
+			print 'That must be a number, 1-9',
 	roll('d20 + ' + str(char.Prof + char.IntMod))
 	if 'y' in raw_input('\nHit? ').lower():
 		roll(str(slot) + 'd12')
@@ -114,7 +169,7 @@ char = charsheet.char(raw_input('Name? '))
 while True:
 	run = -1
 	command = raw_input('> ')
-	command = command.replace(' ','').lower()
+	command = command.replace('\'','\\\'').replace(' ','').lower()
 	if 'info' in command: 	#print spell description
 		files = glob.glob('.\\Spells\\' + command[4:] + '.txt')
 		if len(files) == 0:
@@ -126,10 +181,11 @@ while True:
 		file.close()
 		continue
 	files = glob.glob('.\\Spells\\' + command + '.txt')		#cast spell
+
 	if len(files) > 0:
 		file = open(files[0])
 		mod = char.CastScore
-		eval(command.lower() + '(\'' + mod + '\')')
+		eval(command + '(\'' + mod + '\')')
 		file.close()
 		continue
 	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
