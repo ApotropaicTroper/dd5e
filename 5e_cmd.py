@@ -167,6 +167,8 @@ def witchbolt(mod):
 	else:
 		print 'Too bad!'
 def info(cmd): #receive name of spell only
+	if cmd == '':
+		raise Exception
 	spell = cmd.replace(' ','%20')
 	url = compendium + spell + '#h-' + spell
 	soup = BeautifulSoup(requests.get(url).text, 'lxml')
@@ -182,13 +184,19 @@ while True:
 	if 'info' in command: 	#print spell description
 		info(command[5:])
 		continue
+#either it's a roll or its a spell. how to test.....
+	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
+		break
 	mod = char.CastScore
 	try:
 		eval(command.replace(' ','') + '(\'' + mod + '\')')
+		continue
 	except:
-		pass
-	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
-		break
+		try:
+			info(command)
+			continue
+		except:
+			pass
 	try:
 		run = roll(command)
 	except:
