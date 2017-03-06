@@ -166,7 +166,13 @@ def witchbolt(mod):
 		print 'Lightning damage.'
 	else:
 		print 'Too bad!'
-
+def info(cmd): #receive name of spell only
+	spell = cmd.replace(' ','%20')
+	url = compendium + spell + '#h-' + spell
+	soup = BeautifulSoup(requests.get(url).text, 'lxml')
+	title = str(soup.title)[7:].split(' | ')[0]
+	info = soup.find('meta',{'name':'description'})['content']
+	print '\n'.join((title,info))
 
 char = charsheet.char(raw_input('Name? '))
 while True:
@@ -174,16 +180,13 @@ while True:
 	command = raw_input('> ')
 	command = command.replace('\'','\\\'')
 	if 'info' in command: 	#print spell description
-		spell = command[5:].replace(' ','%20')
-		url = compendium + spell + '#h-' + spell
-		soup = BeautifulSoup(requests.get(url).text, 'lxml')
-		title = str(soup.title)[7:].split(' | ')[0]
-		info = soup.find('meta',{'name':'description'})['content']
-		print '\n'.join((title,info))
-	else:
-		mod = char.CastScore
-		eval(command.replace(' ','') + '(\'' + mod + '\')')
+		info(command[5:])
 		continue
+	mod = char.CastScore
+	try:
+		eval(command.replace(' ','') + '(\'' + mod + '\')')
+	except:
+		pass
 	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
 		break
 	try:
