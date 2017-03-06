@@ -184,19 +184,19 @@ while True:
 	if 'info' in command: 	#print spell description
 		info(command[5:])
 		continue
-#either it's a roll or its a spell. how to test.....
 	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
 		break
 	mod = char.CastScore
-	try:
-		eval(command.replace(' ','') + '(\'' + mod + '\')')
-		continue
-	except:
+
+#is the command a spell in the spell list? If so, run spell command
+#otherwise attempt to roll dice
+	files = glob.glob('.\\Spells\\' + command.replace(' ','') + '.txt')
+	if len(files) > 0:
 		try:
-			info(command)
-			continue
+			eval(command.replace(' ','') + '(\'' + mod + '\')')
 		except:
-			pass
+			info(command)
+		continue
 	try:
 		run = roll(command)
 	except:
