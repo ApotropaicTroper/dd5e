@@ -186,13 +186,12 @@ while True:
 		continue
 	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
 		break
-	mod = char.CastScore
-
 #is the command a spell in the spell list? If so, run spell command
 #otherwise attempt to roll dice
 	files = glob.glob('.\\Spells\\' + command.replace(' ','') + '.txt')
 	if len(files) > 0:
 		try:
+			mod = char.CastScore
 			eval(command.replace(' ','') + '(\'' + mod + '\')')
 		except:
 			info(command)
