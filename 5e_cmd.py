@@ -1,10 +1,13 @@
 import random as rand
 import sys, re, glob
 import charsheet
+from bs4 import BeautifulSoup
+import urllib, requests
 
+compendium = 'https://roll20.net/compendium/dnd5e/Spells:'
+#URL form: compendium + spell (space -> '%20') + '#h-' + spell (space -> '%20)
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
-
 
 				#(number of dice)d(die type)
 def roll(cmd):#returns -1 if error, 0 if exit, 1 if success
@@ -169,24 +172,17 @@ char = charsheet.char(raw_input('Name? '))
 while True:
 	run = -1
 	command = raw_input('> ')
-	command = command.replace('\'','\\\'').replace(' ','').lower()
+	command = command.replace('\'','\\\'')
 	if 'info' in command: 	#print spell description
-		files = glob.glob('.\\Spells\\' + command[4:] + '.txt')
-		if len(files) == 0:
-			char.toString()
-			continue
-		file = open(glob.glob('.\\Spells\\' + command[4:] + '.txt')[0])
-		for line in file:
-			print line,
-		file.close()
-		continue
-	files = glob.glob('.\\Spells\\' + command + '.txt')		#cast spell
-
-	if len(files) > 0:
-		file = open(files[0])
+		spell = command[5:].replace(' ','%20')
+		url = compendium + spell + '#h-' + spell
+		soup = BeautifulSoup(requests.get(url).text, 'lxml')
+		title = str(soup.title)[7:].split(' | ')[0]
+		info = soup.find('meta',{'name':'description'})['content']
+		print '\n'.join((title,info))
+	else:
 		mod = char.CastScore
-		eval(command + '(\'' + mod + '\')')
-		file.close()
+		eval(command.replace(' ','') + '(\'' + mod + '\')')
 		continue
 	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
 		break
