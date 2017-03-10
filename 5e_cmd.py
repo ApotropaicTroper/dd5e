@@ -58,7 +58,7 @@ def roll(cmd):#returns -1 if exit, 1 if normal oparation
 
 #Not all spells do damage, such as Comprehend Languages.
 # These will not be implemented except to be described with "info".
-def chromaticorb(mod):
+def chromaticorb(mod,adv='n'):
 	dmg = raw_input('Damage type? Fire/Cold/Lightning/Thunder/Acid/Poison\n')
 	slot = 0
 	while slot < 1 or slot > 9:
@@ -68,16 +68,20 @@ def chromaticorb(mod):
 			print 'That must be a number!',
 
 	roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
+	if 'a' in adv or 'd' in adv:
+		roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))		
 	if 'y' in raw_input('\nHit? ').lower():
 		roll(str(slot+2) + 'd8')
 		print dmg.capitalize() + ' damage.'
 	else:
 		print 'Too bad!'	
 
-def eldritchblast(mod):
+def eldritchblast(mod,adv='n'):
 	hits = -1
 	for x in range(0,(char.level+1)/6 + 1):
-		roll('d20 + ' + str(char.Prof) + ' + ' + str(char.ChrMod))
+		roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
+		if 'a' in adv or 'd' in adv:
+			roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))		
 		print ''
 	while hits < 0:
 		try:
@@ -95,10 +99,11 @@ def eldritchblast(mod):
 		roll('d10')
 		print 'Force damage.'
 
-def firebolt(mod):#'a' for advantage, 'd' for disadvantage
+def firebolt(mod,adv='n'):#'a' for advantage, 'd' for disadvantage
 	roll('d20+' + str(char.Prof) + '+' + str(eval('char.' + mod + 'Mod')))
-	response = raw_input('\nHit? ').lower()
-	if 'y' in response:
+	if adv == 'a' or adv == 'd':
+		roll('d20+' + str(char.Prof) + '+' + str(eval('char.' + mod + 'Mod')))		
+	if 'y' in raw_input('\nHit? ').lower():
 		roll(str((char.level+1)/6 + 1) + 'd10')
 		print 'Fire damage.'
 	else:
@@ -128,15 +133,17 @@ def magicmissile(mod):
 		roll('d4+1')
 		print 'Force damage.'
 
-def rayoffrost(mod):
+def rayoffrost(mod,adv='n'):
 	roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
+	if 'a' in adv or 'd' in adv:
+		roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))		
 	if 'y' in raw_input('\nHit? ').lower():
 		roll(str((char.level+1)/6 + 1) + 'd8')
 		print 'Cold damage.'
 	else:
 		print 'Too bad!'
 
-def scorchingray(mod):
+def scorchingray(mod,adv='n'):
 	slot = 0
 	while slot < 2 or slot > 9:
 		try:
@@ -146,6 +153,8 @@ def scorchingray(mod):
 
 	for x in range(0,slot+1):
 		roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
+		if 'a' in adv or 'd' in adv:
+			roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))		
 		print ''
 	hits = -1
 	while hits < 0:
@@ -163,14 +172,16 @@ def scorchingray(mod):
 		roll('2d6')
 		print 'Fire damage.'	
 
-def witchbolt(mod):
+def witchbolt(mod,adv='n'):
 	slot = 0
 	while slot < 1 or slot > 9:
 		try:
 			slot = int(raw_input('Spell slot level? '))
 		except:
 			print 'That must be a number, 1-9',
-	roll('d20 + ' + str(char.Prof + char.IntMod))
+	roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
+	if 'a' in adv or 'd' in adv:
+		roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))		
 	if 'y' in raw_input('\nHit? ').lower():
 		roll(str(slot) + 'd12')
 		print 'Lightning damage.'
@@ -192,7 +203,11 @@ while True:
 	command = raw_input('> ')
 	command = command.replace('\'','\\\'')
 	if 'info' in command: 	#print spell description
-		info(command[5:])
+		try:
+			info(command[5:])
+		except:
+			char.toString()
+			continue
 		continue
 	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
 		break
@@ -202,15 +217,15 @@ while True:
 	if len(files) > 0:
 		try:
 			mod = char.CastScore
-			eval(command.replace(' ','') + '(\'' + mod + '\')')
+			eval(command.replace(' ','') + '(\'' + mod + '\',\'' + raw_input('Adv/Dis? ') + '\')')
 		except:
 			info(command)
 		continue
-#	try:
-	run = roll(command)
-#	except:
-#		print 'Malformed roll.\ne.g. 2d10+3-2'
-#	print ''
+	try:
+		run = roll(command)
+	except:
+		print 'Malformed roll.\ne.g. 2d10+3-2'
+	print ''
 sys.exit()
 
 
