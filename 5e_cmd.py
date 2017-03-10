@@ -4,47 +4,56 @@ import charsheet
 from bs4 import BeautifulSoup
 import urllib, requests
 
+#Find new compendium to use0
+#'https://www.dnd-spells.com/spell/' + spell(replace space with '-' and remove punctuation
+#   ^some spells end with '-ritual' in the URL
+#'http://engl393-dnd5th.wikia.com/wiki/' + spell
 compendium = 'https://roll20.net/compendium/dnd5e/Spells:'
-#URL form: compendium + spell (space -> '%20') + '#h-' + spell (space -> '%20)
+
+#Problematic spells thus far:
+#Anything with an Apostrophe or a Name
+#Bigby's Hand (Arcane Hand)
+#Enlarge/Reduce (Enlarge Reduce)
+#Evard's Black Tentacles (Black Tentacles)
+#Heroes' Feast
+#Hunter's Mark
+#Leomund's Tiny Hut (Tiny Hut)
+#Leomund's Secret Chest (Secret Chest)
+#Mordenkainen's Private Sanctum (Private Sanctum
+#Nystul's Magic Aura (Arcanist's Magic Aura)
+#Tasha's Hideous Laughter (Hideous Laughter)
+#Tenser's Floating Disk (Floating Disk)
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
 
 				#(number of dice)d(die type)
-def roll(cmd):#returns -1 if error, 0 if exit, 1 if success
+def roll(cmd):#returns -1 if exit, 1 if normal oparation
 	if 'd' not in cmd:
+		print 'That\'s no roll at all!'
 		return -1
-	cmd = re.sub(' *\+ *',' + ',cmd)
-	cmd = re.sub(' *- *',' - ',cmd) #formatting for output
+	cmd = re.sub(' *\+ *',' +',cmd)
+	cmd = re.sub(' *- *',' -',cmd)
+	parse = cmd.split(' ')
 
-	out = ['(' + cmd + '): ['] #output string
-	parse = re.split(' \+ | - ',cmd,1)
-	dice = parse[0]
+	cmd = re.sub('\+','+ ',cmd)
+	cmd = re.sub('-','- ',cmd)
 
-	if len(parse) > 1:
-		if cmd.split(dice)[1][1] == '-': #if first modifier is a penalty, prefix with a minus sign
-			parse[1] = ' - ' + parse[1]
+	rolls = []
+	for term in parse:
+		if 'd' in term:
+			dice = term.replace('+','').split('d')
+			if len(dice[0]) == 0:
+				dice[0] = '1'
+			temp = []
+			for x in range(0,int(dice[0])):
+				temp += [str(rand.randint(1,int(dice[1]))),'+']
+			rolls += [' '.join(temp[:-1])]
 		else:
-			parse[1] = ' + ' + parse[1]
+			rolls += [term[0] + ' ' + term[1:]]
 
-	dice = dice.split('d') #reduce function calls by casting these to ints once before loop
-	if dice[0] == '':
-		dice[0] = '1'
-	dice[0] = int(dice[0]) #number of dice to roll
-	dice[1] = int(dice[1]) #number of sides to the die (numbered 1 to n)
-
-	total = 0		#Rolling sum
-	for x in range(0,dice[0]):
-		if x != 0:
-			out += [' + ']
-		roll = rand.randint(1,dice[1])
-					#Conditions? to be added later, if at all.
-		total += roll
-		out += [str(roll)]
-	if len(parse) > 1:
-		total += eval(parse[1])
-		out.extend([parse[1]])
-	out += ['] = ' + str(total)]
-	print ''.join(out),
+	out = eval(' + '.join(rolls))
+	out = '(' + cmd + '): [' + ' '.join(rolls) + '] = ' + str(out)
+	print out
 	return 1
 
 #Not all spells do damage, such as Comprehend Languages.
@@ -86,9 +95,10 @@ def eldritchblast(mod):
 		roll('d10')
 		print 'Force damage.'
 
-def firebolt(mod):
-	roll('d20 + ' + str(char.Prof) + ' + ' + str(eval('char.' + mod + 'Mod')))
-	if 'y' in raw_input('\nHit? ').lower():
+def firebolt(mod):#'a' for advantage, 'd' for disadvantage
+	roll('d20+' + str(char.Prof) + '+' + str(eval('char.' + mod + 'Mod')))
+	response = raw_input('\nHit? ').lower()
+	if 'y' in response:
 		roll(str((char.level+1)/6 + 1) + 'd10')
 		print 'Fire damage.'
 	else:
@@ -196,11 +206,11 @@ while True:
 		except:
 			info(command)
 		continue
-	try:
-		run = roll(command)
-	except:
-		print 'Malformed roll.\ne.g. 2d10+3-2'
-	print ''
+#	try:
+	run = roll(command)
+#	except:
+#		print 'Malformed roll.\ne.g. 2d10+3-2'
+#	print ''
 sys.exit()
 
 
