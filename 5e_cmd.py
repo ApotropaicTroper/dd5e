@@ -196,42 +196,47 @@ def info(spell): #receive name of spell only
 	soup = BeautifulSoup(requests.get(compendium).text,'lxml')
 	for tr in soup.tbody.findAll('tr'):
 		td = tr.findAll('td')
-		if spell in td[1].a.string.lower().split('('):
+		if spell in td[1].a.string.lower().split('(')[0]:
 			alphSoup = BeautifulSoup(requests.get(td[1].a.get('href')).text,'lxml')	#"spell"ing with alphabet soup
 			info = alphSoup.find('div',{'class':'col-md-12'})
-			print '\n', info.h1.span.string
+			out = ['', info.h1.span.string]
 			p = info.findAll('p')[:-1]
 
 			school = p[0].string
 			stats = p[1].findAll('strong')
 			level = stats[0].string.strip()
 			if level == 'Cantrip':
-				print '', school, level
+				out += [' ' + school + ' ' + level,'']
 			else:
-				print '', inflect.engine().ordinal(level) + '-level', school
-			print '\nCasting Time:',stats[1].string, '\nRange:',stats[2].string
-			print 'Components:',stats[3].string, '\nDuration:', stats[4].string
+				out += [' ' + inflect.engine().ordinal(level) + '-level ' + school,'']
+			out += ['Casting Time: ' + stats[1].string,
+					'Range: ' + stats[2].string,
+					'Components: ' + stats[3].string,
+					'Duration: ' + stats[4].string]
 
 #if casting time is a reaction, then don't print an extra newline; print it after reaction
 			reaction = 'Reaction' in str(p[2])
-
 			for par in re.sub('</?p>','',str(p[2])).split('<br/>'):
 				if reaction:
-					print ' '*3, par.strip() + '\n'
+					out += [' '*4 + par.strip()]
 					reaction = False
 					continue
+				if ' '*6 not in out:
+					out += [' '*6]
 				if par.strip() != '':
-					print ' '*7,par.strip()
+					out += [' '*8 + par.strip()]
 
-
-
-
+#If spell scales with spell slot level, separate this line from rest of description
 			if len(p) == 6:
+				out += ['']
 				for par in re.sub('</?p>','',str(p[3])).split('<br/>'):
-					print ' '*7,par.strip()
-			print '\nClasses:\n ' + ', '.join([a.string for a in p[-1].findAll('a')]) + '\n'
-			break
+					out += [' '*8 + par.strip()]
+			out += ['\nClasses:', ' ' + ', '.join([a.string for a in p[-1].findAll('a')]),'']
 
+			print '\n'.join(out)
+
+			return 1
+	print 'Spell not found. Did you mistype it?'
 
 
 char = charsheet.char(raw_input('Name? '))
