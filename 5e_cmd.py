@@ -1,22 +1,14 @@
 import random as rand
-import sys, re, glob
+import re, glob, codecs
 import charsheet
 from bs4 import BeautifulSoup
-import urllib, requests, inflect
+from string import capwords
+from inflect import engine
+import urllib, requests
 
 compendium = 'https://www.dnd-spells.com/spells/'
 #Problematic spells thus far:
-#Anything with an Apostrophe
-#Bigby's Hand 
-#Evard's Black Tentacles
-#Heroes' Feast
-#Hunter's Mark
-#Leomund's Tiny Hut 
-#Leomund's Secret Chest
-#Mordenkainen's Private Sanctum
-#Nystul's Magic Aura
-#Tasha's Hideous Laughter
-#Tenser's Floating Disk
+#None that I know of.
 
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
@@ -194,8 +186,18 @@ def witchbolt(mod):
 def info(spell): #receive name of spell only
 	if spell == '':
 		raise Exception
-	else:
-		spell = spell.replace('\'',u'\u2019')
+#look for the spell in files; if not there, get from internet
+	for file in glob.glob('.\\Spells\\*.txt'):
+		if spell.replace(' ','') in file.lower():
+			fr = codecs.open('.\\Spells\\' + spell.replace(' ','') + '.txt','r','utf-8')
+			for line in fr:
+				print line
+			print ''
+			fr.close()
+			return 1
+
+	spellIn = spell	
+	spell = spell.replace('\'',u'\u2019')
 	soup = BeautifulSoup(requests.get(compendium).text,'lxml')
 	for tr in soup.tbody.findAll('tr'):
 		td = tr.findAll('td')
@@ -211,7 +213,7 @@ def info(spell): #receive name of spell only
 			if level == 'Cantrip':
 				out += [' ' + school + ' ' + level,'']
 			else:
-				out += [' ' + inflect.engine().ordinal(level) + '-level ' + school,'']
+				out += [' ' + engine().ordinal(level) + '-level ' + school,'']
 			out += ['Casting Time: ' + stats[1].string,
 					'Range: ' + stats[2].string,
 					'Components: ' + stats[3].string,
@@ -237,7 +239,10 @@ def info(spell): #receive name of spell only
 			out += ['\nClasses:', ' ' + ', '.join([a.string for a in p[-1].findAll('a')]),'']
 			out = '\n'.join(out)
 			print out
-
+			fw = codecs.open('.\\Spells\\' + ''.join(capwords(spellIn).split()) + '.txt','w','utf-8')
+			fw.write(out.replace('\n','\r'))
+			fw.close()
+#Write the spell to a text file
 			return 1
 	print 'Spell not found. Did you mistype it?'
 
@@ -271,7 +276,6 @@ while True:
 	except:
 		print 'Malformed roll.\ne.g. 2d10+3-2'
 	print ''
-sys.exit()
 
 
 
