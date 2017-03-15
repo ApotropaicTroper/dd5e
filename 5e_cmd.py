@@ -17,10 +17,9 @@ compendium = 'https://www.dnd-spells.com/spells/'
 #Nystul's Magic Aura
 #Tasha's Hideous Laughter
 #Tenser's Floating Disk
-#
+
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
-{'1':'st','2':'nd','3':'rd','4':'th','5':'','6':'','7':'','8':'','9':''}
 				#(number of dice)d(die type)
 def roll(cmd):#returns -1 if exit, 1 if normal oparation
 	if 'd' not in cmd:
@@ -191,13 +190,15 @@ def witchbolt(mod):
 		print 'Lightning damage.'
 	else:
 		print 'Too bad!'
+
 def info(spell): #receive name of spell only
 	if spell == '':
 		raise Exception
+	else:
+		spell = spell.replace('\'',u'\u2019')
 	soup = BeautifulSoup(requests.get(compendium).text,'lxml')
 	for tr in soup.tbody.findAll('tr'):
 		td = tr.findAll('td')
-#		print td[1].a.string.lower().split('(')[0]
 		if td[1].a.string.lower().split(' (')[0] == spell:
 			alphSoup = BeautifulSoup(requests.get(td[1].a.get('href')).text,'lxml')	#"spell"ing with alphabet soup
 			info = alphSoup.find('div',{'class':'col-md-12'})
@@ -245,7 +246,6 @@ char = charsheet.char(raw_input('Name? '))
 while True:
 	run = -1
 	command = raw_input('> ')
-	command = command.replace('\'','\\\'')
 	if 'info' in command: 	#print spell description
 #		try:
 		info(command[5:])
@@ -253,6 +253,7 @@ while True:
 #			char.toString()
 #			continue
 		continue
+	command = command.replace('\'','\\\'')
 	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
 		break
 #is the command a spell in the spell list? If so, run spell command
