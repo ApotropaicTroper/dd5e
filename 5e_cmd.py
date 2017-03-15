@@ -6,17 +6,18 @@ import urllib, requests, inflect
 
 compendium = 'https://www.dnd-spells.com/spells/'
 #Problematic spells thus far:
-#Anything with an Apostrophe or a Name
-#Bigby's Hand (Arcane Hand)
-#Evard's Black Tentacles (Black Tentacles)
+#Anything with an Apostrophe
+#Bigby's Hand 
+#Evard's Black Tentacles
 #Heroes' Feast
 #Hunter's Mark
-#Leomund's Tiny Hut (Tiny Hut)
-#Leomund's Secret Chest (Secret Chest)
-#Mordenkainen's Private Sanctum (Private Sanctum
-#Nystul's Magic Aura (Arcanist's Magic Aura)
-#Tasha's Hideous Laughter (Hideous Laughter)
-#Tenser's Floating Disk (Floating Disk)
+#Leomund's Tiny Hut 
+#Leomund's Secret Chest
+#Mordenkainen's Private Sanctum
+#Nystul's Magic Aura
+#Tasha's Hideous Laughter
+#Tenser's Floating Disk
+#
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
 {'1':'st','2':'nd','3':'rd','4':'th','5':'','6':'','7':'','8':'','9':''}
@@ -196,7 +197,8 @@ def info(spell): #receive name of spell only
 	soup = BeautifulSoup(requests.get(compendium).text,'lxml')
 	for tr in soup.tbody.findAll('tr'):
 		td = tr.findAll('td')
-		if spell in td[1].a.string.lower().split('(')[0]:
+#		print td[1].a.string.lower().split('(')[0]
+		if td[1].a.string.lower().split(' (')[0] == spell:
 			alphSoup = BeautifulSoup(requests.get(td[1].a.get('href')).text,'lxml')	#"spell"ing with alphabet soup
 			info = alphSoup.find('div',{'class':'col-md-12'})
 			out = ['', info.h1.span.string]
@@ -232,8 +234,8 @@ def info(spell): #receive name of spell only
 				for par in re.sub('</?p>','',str(p[3])).split('<br/>'):
 					out += [' '*8 + par.strip()]
 			out += ['\nClasses:', ' ' + ', '.join([a.string for a in p[-1].findAll('a')]),'']
-
-			print '\n'.join(out)
+			out = '\n'.join(out)
+			print out
 
 			return 1
 	print 'Spell not found. Did you mistype it?'
