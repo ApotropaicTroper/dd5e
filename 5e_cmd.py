@@ -28,7 +28,7 @@ def roll(cmd):#returns -1 if exit, 1 if normal oparation
 	for term in parse:
 		if 'd' in term:
 			dice = term.replace('+','').split('d')
-			if len(dice[0]) == 0:
+			if not len(dice[0]):
 				dice[0] = '1'
 			temp = []
 			for x in range(0,int(dice[0])):
@@ -51,7 +51,7 @@ def chromaticorb(mod):
 		try:
 			slot = int(raw_input('Spell slot level? '))
 		except:
-			print 'That must be a number!',
+			print 'That must be a number, 1-9'
 
 	roll('d20+' + str(char.CastBonus))
 	response = raw_input('\nHit? ')
@@ -80,12 +80,22 @@ def eldritchblast(mod):
 				continue
 		except:
 			print 'That\'s not a number!'
-	if hits == 0:
+	if not hits:
 		print 'Too bad!'
 		return -1
 	for x in range(0, hits):
 		roll('d10')
 		print 'Force damage.'
+
+def falselife(mod):
+	slot = 0
+	while slot < 1 or slot > 9:
+		try:
+			slot = int(raw_input('Spell slot level? '))
+		except:
+			print 'That must be a number, 1-9'
+	roll('d4+1 + ' + str((slot-1)*5))
+	print ' Temporary hit points.'
 
 def firebolt(mod):#'a' for advantage, 'd' for disadvantage
 	roll('d20+' + str(char.CastBonus))
@@ -107,7 +117,7 @@ def lightningbolt(mod):
 		try:
 			slot = int(raw_input('Spell slot level? '))
 		except:
-			print 'That must be a number, 3-9',
+			print 'That must be a number, 3-9'
 	roll(str(slot+5) + 'd6')
 	print 'Lightning damage.'
 
@@ -117,7 +127,7 @@ def magicmissile(mod):
 		try:
 			slot = int(raw_input('Spell slot level? '))
 		except:
-			print 'That must be a number, 1-9',
+			print 'That must be a number, 1-9'
 	for x in range(0,slot+2):
 		roll('d4+1')
 		print 'Force damage.'
@@ -142,7 +152,7 @@ def scorchingray(mod):
 		try:
 			slot = int(raw_input('Spell slot level? '))
 		except:
-			print 'That must be a number, 2-9',
+			print 'That must be a number, 2-9'
 
 	for x in range(0,slot+1):
 		roll('d20+' + str(char.CastBonus))
@@ -156,7 +166,7 @@ def scorchingray(mod):
 				hits = -1
 		except:
 			print 'That\'s not a number!'
-	if hits == 0:
+	if not hits:
 		print 'Too bad!'
 		return -1
 	for x in range(0,hits):
@@ -169,7 +179,7 @@ def witchbolt(mod):
 		try:
 			slot = int(raw_input('Spell slot level? '))
 		except:
-			print 'That must be a number, 1-9',
+			print 'That must be a number, 1-9'
 	roll('d20+' + str(char.CastBonus))
 	response = raw_input('\nHit? ')
 	if 'a' in response or 'd' in response:
@@ -184,14 +194,14 @@ def witchbolt(mod):
 		print 'Too bad!'
 
 def info(spell): #receive name of spell only
-	if spell == '':
+	if not spell:
 		raise Exception
 #look for the spell in files; if not there, get from internet
 	for file in glob.glob('.\\Spells\\*.txt'):
 		if spell.replace(' ','') in file.lower():
 			fr = codecs.open('.\\Spells\\' + spell.replace(' ','') + '.txt','r','utf-8')
 			for line in fr:
-				print line
+				print line,
 			print ''
 			fr.close()
 			return 1
@@ -232,7 +242,7 @@ def info(spell): #receive name of spell only
 					out += [' '*8 + par.strip()]
 
 #If spell scales with spell slot level, separate this line from rest of description
-			if len(p) == 6:
+			if len(p) - 6:
 				out += ['']
 				for par in re.sub('</?p>','',str(p[3])).split('<br/>'):
 					out += [' '*8 + par.strip()]
@@ -240,7 +250,7 @@ def info(spell): #receive name of spell only
 			out = '\n'.join(out)
 			print out
 			fw = codecs.open('.\\Spells\\' + ''.join(capwords(spellIn).split()) + '.txt','w','utf-8')
-			fw.write(out.replace('\n','\r'))
+			fw.write(out)
 			fw.close()
 #Write the spell to a text file
 			return 1
@@ -252,11 +262,10 @@ while True:
 	run = -1
 	command = raw_input('> ')
 	if 'info' in command: 	#print spell description
-#		try:
-		info(command[5:])
-#		except:
-#			char.toString()
-#			continue
+		try:
+			info(command[5:])
+		except:
+			char.toString()
 		continue
 	command = command.replace('\'','\\\'')
 	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
@@ -264,7 +273,7 @@ while True:
 #is the command a spell in the spell list? If so, run spell command
 #otherwise attempt to roll dice
 	files = glob.glob('.\\Spells\\' + command.replace(' ','') + '.txt')
-	if len(files) > 0:
+	if len(files):
 		try:
 			mod = char.CastScore
 			eval(command.replace(' ','') + '(\'' + mod + '\')')
