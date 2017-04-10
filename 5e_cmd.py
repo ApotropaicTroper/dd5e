@@ -231,7 +231,8 @@ def info(spell): #receive name of spell only
 
 #if casting time is a reaction, then don't print an extra newline; print it after reaction
 			reaction = 'Reaction' in str(p[2])
-			for par in re.sub('</?p>','',str(p[2])).split('<br/>'):
+			for par in str(p[2]).split('<br/>'):
+				par = re.sub('<[^<]+?>','',par)		#strip other html codes
 				if reaction:
 					out += [' '*4 + par.strip()]
 					reaction = False
@@ -267,7 +268,6 @@ while True:
 		except:
 			char.toString()
 		continue
-	command = command.replace('\'','\\\'')
 	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
 		break
 #is the command a spell in the spell list? If so, run spell command
