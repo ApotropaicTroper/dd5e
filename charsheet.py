@@ -41,12 +41,15 @@ class char:
 		fields = fileReader.getFields()
 #		print fields['ClassLevel']['/V'].split(' ')[1]
 #		for key in fields.keys():
-#			if 'Spells' in key:
-#			print key
-#			print fields[key]
-#			for key2 in fields[key].keys():
-#				print '    ', key
-#				print '        ', fields[key][key2]
+#			if 'Check Box ' in key and len(key) < 13:
+#				for key2 in fields[key].keys():
+#					try:
+#						if fields[key]['/V'] == '/Yes':
+#							print key
+#							print '    ', key2
+#							print '        ', fields[key][key2]
+#					except:
+#						continue
 		self.level = int(fields['ClassLevel']['/V'].split(' ')[-1])
 		self.Prof = (self.level-1)/4 + 2
 		self.AC = int(fields['AC']['/V'])
@@ -63,6 +66,26 @@ class char:
 		self.IntMod = (self.Int-10)/2
 		self.WisMod = (self.Wis-10)/2
 		self.ChrMod = (self.Chr-10)/2
+#Skill Proficiencies keys:	fields[key]['/V'] == '/Yes'
+#(Dex) Acrobatics: 		Check Box 23
+#(Wis) Animal Handling: Check Box 24
+#(Int) Arcana: 			Check Box 25
+#(Str) Athletics: 		Check Box 26
+#(Cha) Deception: 		Check Box 27
+#(Int) History: 		Check Box 28
+#(Wis) Insight: 		Check Box 29
+#(Cha) Intimidation: 	Check Box 30
+#(Int) Investigation: 	Check Box 31
+#(Wis) Medicine:		Check Box 32
+#(Int) Nature: 			Check Box 33
+#(Wis) Perception: 		Check Box 34
+#(Cha) Performance: 	Check Box 35
+#(Cha) Persuasion: 		Check Box 36
+#(Int) Religion:		Check Box 37
+#(Dex) Sleight of Hand:	Check Box 38
+#(Dex) Stealth:			Check Box 39
+#(Wis) Survival:		Check Box 40
+
 		self.CastScore = fields['SpellcastingAbility 2']['/V']
 		self.CastBonus = self.Prof + eval('self.' + self.CastScore + 'Mod')
 		self.CastDC = 8 + self.CastBonus 
@@ -84,6 +107,7 @@ class char:
 		self.spell7 = []
 		self.spell8 = []
 		self.spell9 = []
+#		print fields['Acrobatics']['/V']
 		charsheet.close()
 
 	def toString(self):
@@ -104,4 +128,5 @@ class char:
 		print 'Passive Perception:',self.PassWis
 
 
-#test = char('testsheet')
+#test = char('Jebeddo the Green')
+#test.toString()
