@@ -9,11 +9,11 @@ import urllib, requests
 compendium = 'https://www.dnd-spells.com/spells/'
 #Problematic spells thus far:
 #None that I know of.
-
+ 
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
 				#(number of dice)d(die type)
-def roll(cmd):#returns -1 if exit, 1 if normal oparation
+def roll(cmd):#returns -1 if exit, 1 if normal operation
 	if 'd' not in cmd:
 		print 'That\'s no roll at all!'
 		return -1
@@ -32,14 +32,13 @@ def roll(cmd):#returns -1 if exit, 1 if normal oparation
 				dice[0] = '1'
 			temp = []
 			for x in range(0,int(dice[0])):
-				temp += [str(rand.randint(1,int(dice[1]))),'+']
-			rolls += [' '.join(temp[:-1])]
+				temp += ['+',str(rand.randint(1,int(dice[1])))]
+			rolls += [' '.join(temp)]
 		else:
 			rolls += [term[0] + ' ' + term[1:]]
 
-	out = eval(' + '.join(rolls))
-	out = '(' + cmd + '): [' + ' '.join(rolls) + '] = ' + str(out)
-	print out,
+	rolls = ' '.join(rolls)[2:]
+	print '(' + cmd + '): [' + rolls + '] = ' + str(eval(rolls))
 	return 1
 
 #Not all spells do damage, such as Comprehend Languages.
