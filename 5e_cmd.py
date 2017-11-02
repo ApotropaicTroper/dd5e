@@ -1,17 +1,26 @@
 import random as rand
-import re, glob, codecs
-import charsheet
-from bs4 import BeautifulSoup
-from string import capwords
-from inflect import engine
-import urllib, requests
+import re, glob
+#from string import capwords
+from inflect import engine	#inflecting numbers (i.e. 1 -> 1st)
+import pandas as pd
+import numpy as np
+#import charsheet
 
-compendium = 'https://www.dnd-spells.com/spells/'
-#Problematic spells thus far:
-#None that I know of.
- 
+
+'''
+To do:
+  Replace "info" function with pulling from excel spreadsheet instead of compendium site
+  package: pandas
+Might want to do:
+  Command GUI: visual of chosen dice when roll command used
+  (TkInter?)
+problem spells:
+light
+'''
+
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
+#classes = {0:'Barbarian',1:'Bard',2:'Cleric',3:'Druid',4:'Fighter',5:'Monk',6:'Paladin',7:'Ranger',8:'Rogue',9:'Sorcerer',10:'Warlock',11:'Wizard'}
 				#(number of dice)d(die type)
 def roll(cmd):#returns -1 if exit, 1 if normal operation
 	if 'd' not in cmd:
@@ -38,13 +47,13 @@ def roll(cmd):#returns -1 if exit, 1 if normal operation
 			rolls += [term[0] + ' ' + term[1:]]
 
 	rolls = ' '.join(rolls)[2:]
-	print '(' + cmd + '): [' + rolls + '] = ' + str(eval(rolls))
+	print '(' + cmd + '): [' + rolls + '] = ' + str(eval(rolls)),
 	return 1
 
 #Not all spells do damage, such as Comprehend Languages.
 # These will not be implemented except to be described with "info".
 def chromaticorb(mod):
-	dmg = raw_input('Damage type? Fire/Cold/Lightning/Thunder/Acid/Poison\n')
+	dmg = raw_input('Damage type? \n')
 	slot = 0
 	while slot < 1 or slot > 9:
 		try:
@@ -61,7 +70,7 @@ def chromaticorb(mod):
 		return -1
 	if 'y' in response or 'y' in raw_input('\nHit? ').lower():
 		roll(str(slot+2) + 'd8')
-		print dmg.capitalize() + ' damage.'
+		print ' Fire/Cold/Lightning/Thunder/Acid/Poison + damage.'
 	else:
 		print 'Too bad!'	
 
@@ -192,71 +201,67 @@ def witchbolt(mod):
 	else:
 		print 'Too bad!'
 
+#Problematic Spells: Dispel Magic
+#df['label'] yields Series: column with that label and indexes
+#df.loc[index] yields Series: row with that index
+#df.loc[row,col]
 def info(spell): #receive name of spell only
-	if not spell:
-		raise Exception
-#look for the spell in files; if not there, get from internet
-	for file in glob.glob('.\\Spells\\*.txt'):
-		if spell.replace(' ','') in file.lower():
-			fr = codecs.open('.\\Spells\\' + spell.replace(' ','') + '.txt','r','utf-8')
-			for line in fr:
-				print line,
-			print ''
-			fr.close()
-			return 1
+	fpath = glob.glob('.\\spells.xlsx')[0]
+#	print fpath
+	compendium = pd.read_excel(fpath)
+#	print compendium['name']
+#	print compendium.loc[0,'name']
+	names = compendium['name']
+	index = -1
+	for item in range(names.size):
+		if spell == compendium.loc[item,'name']:
+			index = item
+			break
+	if index == -1:
+		print 'Spell not found'
+		return -1
+	spell = compendium.loc[index]
+	print spell
+	out = spell['name'] + '\n'
+	if not spell['level']:
+		out += spell['school'] + 'cantrip'
+	else:
+		out += engine().ordinal(spell['level']) + '-level ' + spell['school']
+	out += '\nCasting Time: ' + spell['casting_time'] + '\nRange: ' + spell['spell_range']
+	out += '\nComponents: '
+	if spell['comp_verb']:
+		out += 'V '
+	if spell['comp_som']:
+		out += 'S '
+	if spell['comp_mat']:
+		out += 'M (' + spell['materials'] + ')'
+	out += '\nDuration: '
+	if spell['concentration']:
+		out += 'Concentration, '
+	out += spell['duration'] + '\n\n' + spell['description']
+	if spell['at_higher_levels'] != 'None':
+		out += '\n\nAt Higher Levels:\n\t' + spell['at_higher_levels']
+	out += '\n\nClasses: ' + spell['casting_classes']
+	out += '\n' + spell['source_book'] + ', Page ' + str(spell['source_page']) + '\n'
+	print out
+'''
+properties:
+name	level	school	is_ritual	casting_time	spell_range
+comp_verb	comp_som	comp_mat	materials
+duration	concentration
+description		at_higher_levels
+source_book		source_page
+casting_classes
+ can_barbarian	can_bard	can_cleric	can_druid		can_fighter		can_monk,
+ can_paladin	can_ranger	can_rogue	can_sorcerer	can_warlock		can_wizard
+'''
+#	for row in compendium.iterrows():	#row is a tuple: index, Series
+info('Fire Bolt')
+info('Magic Missile')
+info('Spider Climb')
+info('Fireball')
 
-	spellIn = spell	
-	spell = spell.replace('\'',u'\u2019')
-	soup = BeautifulSoup(requests.get(compendium).text,'lxml')
-	for tr in soup.tbody.findAll('tr'):
-		td = tr.findAll('td')
-		if td[1].a.string.lower().split(' (')[0] == spell:
-			alphSoup = BeautifulSoup(requests.get(td[1].a.get('href')).text,'lxml')	#"spell"ing with alphabet soup
-			info = alphSoup.find('div',{'class':'col-md-12'})
-			out = ['', info.h1.span.string]
-			p = info.findAll('p')[:-1]
-
-			school = p[0].string
-			stats = p[1].findAll('strong')
-			level = stats[0].string.strip()
-			if level == 'Cantrip':
-				out += [' ' + school + ' ' + level,'']
-			else:
-				out += [' ' + engine().ordinal(level) + '-level ' + school,'']
-			out += ['Casting Time: ' + stats[1].string,
-					'Range: ' + stats[2].string,
-					'Components: ' + stats[3].string,
-					'Duration: ' + stats[4].string]
-
-#if casting time is a reaction, then don't print an extra newline; print it after reaction
-			reaction = 'Reaction' in str(p[2])
-			for par in str(p[2]).split('<br/>'):
-				par = re.sub('<[^<]+?>','',par)		#strip other html codes
-				if reaction:
-					out += [' '*4 + par.strip()]
-					reaction = False
-					continue
-				if ' '*6 not in out:
-					out += [' '*6]
-				if par.strip() != '':
-					out += [' '*8 + par.strip()]
-
-#If spell scales with spell slot level, separate this line from rest of description
-			if len(p) - 6:
-				out += ['']
-				for par in re.sub('</?p>','',str(p[3])).split('<br/>'):
-					out += [' '*8 + par.strip()]
-			out += ['\nClasses:', ' ' + ', '.join([a.string for a in p[-1].findAll('a')]),'']
-			out = '\n'.join(out)
-			print out
-			fw = codecs.open('.\\Spells\\' + ''.join(capwords(spellIn).split()) + '.txt','w','utf-8')
-			fw.write(out)
-			fw.close()
-#Write the spell to a text file
-			return 1
-	print 'Spell not found. Did you mistype it?'
-
-
+'''
 char = charsheet.char(raw_input('Name? '))
 while True:
 	run = -1
@@ -284,7 +289,7 @@ while True:
 	except:
 		print 'Malformed roll.\ne.g. 2d10+3-2'
 	print ''
-
+'''
 
 
 
