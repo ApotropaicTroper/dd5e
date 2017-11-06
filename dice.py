@@ -3,7 +3,7 @@ import numpy as np
 
 #dice group:
 # <N>d<S>, where <N> is the number of dice and <S> is the number of sides
-class dice:
+class dice(object):
 
 	count = 0
 	sides = 0
@@ -11,24 +11,23 @@ class dice:
 	lastmod = 0
 
 #input: NdS, where N and S are integers
-	def __init__(self,cmd_word) :
-		params = cmd_word.split('d')
+	def __init__(self,word):
+		params = word.split('d')
 		if params[0] == '':
 			params[0] = '1'
 		try:
-			assert str.isdigit(params[0]) and str.isdigit(params[1])
-		except:
-			print 'Malformed dice group. Must be <int>d<int>'
-			return
-		self.count = int(params[0])
-		self.sides = int(params[1])
-		self.roll()
+			assert int(params[0]) > 0 and int(params[1]) > 0
+			self.count = int(params[0])
+			self.sides = int(params[1])
+			self.roll()
+		except AssertionError:
+			print 'No dice. (Must be positive)'
+		except ValueError:
+			print 'No dice. (<int>d<int>)'
 
 #mod is a per-die modifier
 	def roll(self, mod = 0):
-		self.lastroll = []
-		for int in range(self.count):
-			self.lastroll.append(np.random.randint(self.sides)+1 + mod)
+		self.lastroll = [(np.random.randint(self.sides)+1 + mod) for x in range(self.count)]
 		self.lastroll.sort()
 		self.lastmod = mod
 		return self.lastroll
