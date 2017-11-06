@@ -47,12 +47,11 @@ class dice:
 	def sum(self):
 		return sum(self.lastroll)
 #Dice + Dice = total + total
-	def __add__(self,die2):
-		return self.sum() + die2.sum()
-#Dice + int = total + modifier
-	def __add__(self,mod):
-		return self.sum() + mod
-
+	def __radd__(self,arg):# die + die + die = int + die. Must be right-associative
+		try:
+			return self.sum() + arg.sum()
+		except:
+			return self.sum() + arg
 #Dice * int = total * int
 	def __mul__(self,num):
 		print 'left multiply'
@@ -65,24 +64,3 @@ class dice:
 			self.lastroll += self.roll(self.lastmod)
 		return self.lastroll
 
-'''
-Dice notation:
-+- mean perform that operation on the results
-<dice>*/<number> mean perform that operation on the results
-  does not mean reroll
-       2d6*5 = [2:12]*5 = [10:60]
-   (2d6+4)*5 = [6:16]*5 = [30:80]
-<number>*<dice> means perform that operation on the number of dice. i.e. 4*3d6 = 12d6
-  indicates a reroll
-       3*2d6 =    6d6 =  [6:36]
-   3*2d6 + 4 =  6d6+4 = [10:40]
-   3*(2d6+4) = 6d6+12 = [18:48]
-
-'''
-
-#die = dice('2d6')
-#print die.dietype()
-#print die.roll()
-#print die.min(10)
-#print die.max(10)
-#print die.sum()
