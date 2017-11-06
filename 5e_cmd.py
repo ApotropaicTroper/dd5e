@@ -1,57 +1,100 @@
-import random as rand
-import re, glob
-#from string import capwords
+import glob
 from inflect import engine	#inflecting numbers (i.e. 1 -> 1st)
 import pandas as pd
 import numpy as np
+import dice
+#from string import capwords
 #import charsheet
 
 
 '''
 To do:
-  Replace "info" function with pulling from excel spreadsheet instead of compendium site
-  package: pandas
+
 Might want to do:
   Command GUI: visual of chosen dice when roll command used
   (TkInter?)
-problem spells:
-light
 '''
 
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
-#classes = {0:'Barbarian',1:'Bard',2:'Cleric',3:'Druid',4:'Fighter',5:'Monk',6:'Paladin',7:'Ranger',8:'Rogue',9:'Sorcerer',10:'Warlock',11:'Wizard'}
-				#(number of dice)d(die type)
-def roll(cmd):#returns -1 if exit, 1 if normal operation
-	if 'd' not in cmd:
-		print 'That\'s no roll at all!'
+compendium = pd.read_excel(glob.glob('.\\spells.xlsx')[0])
+
+#df['label'] yields Series: column with that label and indexes
+#df.loc[index] yields Series: row with that index
+#df.loc[row,col]
+def info(spell): #receive name of spell only
+	names = compendium['name']
+	index = -1
+	for item in range(names.size):
+		if spell == compendium.loc[item,'name']:
+			index = item
+			break
+	if index == -1:
+		print 'Spell not found'
 		return -1
-	cmd = re.sub(' *\+ *',' +',cmd)
-	cmd = re.sub(' *- *',' -',cmd)
-	parse = cmd.split(' ')
+	spell = compendium.loc[index]
+	out = spell['name'] + '\n'
+	if not spell['level']:
+		out += spell['school'] + 'cantrip'
+	else:
+		out += engine().ordinal(spell['level']) + '-level ' + spell['school']
+	out += '\nCasting Time: ' + spell['casting_time'] + '\nRange: ' + spell['spell_range']
+	out += '\nComponents: '
+	if spell['comp_verb']:
+		out += 'V '
+	if spell['comp_som']:
+		out += 'S '
+	if spell['comp_mat']:
+		out += 'M (' + spell['materials'] + ')'
+	out += '\nDuration: '
+	if spell['concentration']:
+		out += 'Concentration, '
+	out += spell['duration'] + '\n\n' + spell['description']
+	if spell['at_higher_levels'] != 'None':
+		out += '\n\nAt Higher Levels:\n\t' + spell['at_higher_levels']
+	out += '\n\nClasses: ' + spell['casting_classes']
+	out += '\n\t' + spell['source_book'] + ', Page ' + str(spell['source_page']) + '\n'
+	print out
+#properties:
+#name		level	school	is_ritual	casting_time	spell_range
+#comp_verb	comp_som	comp_mat	materials
+#duration	concentration
+#description	at_higher_levels
+#source_book	source_page
+#casting_classes
+# can_barbarian	can_bard	can_cleric	can_druid		can_fighter		can_monk,
+# can_paladin	can_ranger	can_rogue	can_sorcerer	can_warlock		can_wizard
 
-	cmd = re.sub('\+','+ ',cmd)
-	cmd = re.sub('-','- ',cmd)
 
-	rolls = []
-	for term in parse:
-		if 'd' in term:
-			dice = term.replace('+','').split('d')
-			if not len(dice[0]):
-				dice[0] = '1'
-			temp = []
-			for x in range(0,int(dice[0])):
-				temp += ['+',str(rand.randint(1,int(dice[1])))]
-			rolls += [' '.join(temp)]
-		else:
-			rolls += [term[0] + ' ' + term[1:]]
 
-	rolls = ' '.join(rolls)[2:]
-	print '(' + cmd + '): [' + rolls + '] = ' + str(eval(rolls)),
-	return 1
 
-#Not all spells do damage, such as Comprehend Languages.
-# These will not be implemented except to be described with "info".
+die1 = dice.dice('3d4')
+die2 = dice.dice('2d10')
+print die1.roll(3)
+print die2.roll()
+print die1*2
+print 2*die1
+
+
+
+#while True:
+#	command = raw_input('> ')
+#	if command in exit_cmd:
+#		break;
+#	info(command)
+#	isRoll = 'd' in command and any(str.isdigit(char) for char in command)
+#	print isRoll
+#	if isRoll:
+#		roll(command)
+#
+'''
+If number and 'd' in input, then try to roll
+
+
+
+
+'''
+'''
 def chromaticorb(mod):
 	dmg = raw_input('Damage type? \n')
 	slot = 0
@@ -200,66 +243,37 @@ def witchbolt(mod):
 		print 'Lightning damage.'
 	else:
 		print 'Too bad!'
-
-#Problematic Spells: Dispel Magic
-#df['label'] yields Series: column with that label and indexes
-#df.loc[index] yields Series: row with that index
-#df.loc[row,col]
-def info(spell): #receive name of spell only
-	fpath = glob.glob('.\\spells.xlsx')[0]
-#	print fpath
-	compendium = pd.read_excel(fpath)
-#	print compendium['name']
-#	print compendium.loc[0,'name']
-	names = compendium['name']
-	index = -1
-	for item in range(names.size):
-		if spell == compendium.loc[item,'name']:
-			index = item
-			break
-	if index == -1:
-		print 'Spell not found'
+'''
+'''	if 'd' not in cmd:
+		print 'That\'s no roll at all!'
 		return -1
-	spell = compendium.loc[index]
-	print spell
-	out = spell['name'] + '\n'
-	if not spell['level']:
-		out += spell['school'] + 'cantrip'
-	else:
-		out += engine().ordinal(spell['level']) + '-level ' + spell['school']
-	out += '\nCasting Time: ' + spell['casting_time'] + '\nRange: ' + spell['spell_range']
-	out += '\nComponents: '
-	if spell['comp_verb']:
-		out += 'V '
-	if spell['comp_som']:
-		out += 'S '
-	if spell['comp_mat']:
-		out += 'M (' + spell['materials'] + ')'
-	out += '\nDuration: '
-	if spell['concentration']:
-		out += 'Concentration, '
-	out += spell['duration'] + '\n\n' + spell['description']
-	if spell['at_higher_levels'] != 'None':
-		out += '\n\nAt Higher Levels:\n\t' + spell['at_higher_levels']
-	out += '\n\nClasses: ' + spell['casting_classes']
-	out += '\n' + spell['source_book'] + ', Page ' + str(spell['source_page']) + '\n'
-	print out
-'''
-properties:
-name	level	school	is_ritual	casting_time	spell_range
-comp_verb	comp_som	comp_mat	materials
-duration	concentration
-description		at_higher_levels
-source_book		source_page
-casting_classes
- can_barbarian	can_bard	can_cleric	can_druid		can_fighter		can_monk,
- can_paladin	can_ranger	can_rogue	can_sorcerer	can_warlock		can_wizard
-'''
-#	for row in compendium.iterrows():	#row is a tuple: index, Series
-info('Fire Bolt')
-info('Magic Missile')
-info('Spider Climb')
-info('Fireball')
+	cmd = re.sub(' *\+ *',' +',cmd)
+	cmd = re.sub(' *- *',' -',cmd)
+	parse = cmd.split(' ')
+
+	cmd = re.sub('\+','+ ',cmd)
+	cmd = re.sub('-','- ',cmd)
+
+	rolls = []
+	for term in parse:
+		if 'd' in term:
+			dice = term.replace('+','').split('d')
+			if not len(dice[0]):
+				dice[0] = '1'
+			temp = []
+			for x in range(0,int(dice[0])):
+				temp += ['+',str(rand.randint(1,int(dice[1])))]
+			rolls += [' '.join(temp)]
+		else:
+			rolls += [term[0] + ' ' + term[1:]]
+
+	rolls = ' '.join(rolls)[2:]
+	result = eval(rolls)
+	print '(' + cmd + '): [' + rolls + '] = ' + str(result),
+	return result'''
+
+
+
 
 '''
 char = charsheet.char(raw_input('Name? '))
