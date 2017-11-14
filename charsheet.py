@@ -4,28 +4,28 @@ import codecs
 import pandas as pd
 
 
-Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
-pg1header = {'CharacterName','ClassLevel','Background','PlayerName','Race','Alignment','XP'}
-stats = {'STR','DEX','CON','INT','WIS','CHA','STRmod','DEXmod','CONmod','INTmod','WISmod','CHamod',
-			'Inspiration','ProfBonus',
-			'ST Strength','ST Dexterity','ST Constitution','ST Intelligence','ST Wisdom','ST Charisma'}
-skills = {'Acrobatics','Animal','Arcana','Athletics','Deception','History','Passive',
+Scores_Abbr = ['Str','Dex','Con','Int','Wis','Chr']
+#pg1header = {'CharacterName','ClassLevel','Background','PlayerName','Race','Alignment','XP'}
+#stats = {'STR','DEX','CON','INT','WIS','CHA','STRmod','DEXmod','CONmod','INTmod','WISmod','CHamod',
+#			'Inspiration','ProfBonus',
+Scores_Full = ['Strength','Dexterity','Constitution','Intelligence','Wisdom','Charisma']
+skills = ['Acrobatics','Animal','Arcana','Athletics','Deception','History','Passive',
 		  'Insight','Intimidation','Investigation','Medicine','Nature','Perception',
-		  'Performance','Persuasion','Religion','SleightofHand','Stealth','Survival'}
-pg1col1 = stats | skills | {'ProficienciesLang'}
-HPstats = {'HPMax','HPCurrent','HPTemp','HDTotal','HD'}
-wpns = {'AttacksSpellcasting','Wpn Name','Wpn Name 2','Wpn Name 3',
-		 'Wpn1 AtkBonus','Wpn2 AtkBonus','Wpn3 AtkBonus','Wpn1 Damage','Wpn2 Damage','Wpn3 Damage'}
-pg1col2 = {'AC','Initiative','Speed'} | HPstats | wpns | {'GP','EP','SP','CP','PP','Equipment'}
-pg1col3 = {'PersonalityTraits','Ideals','Bonds','Flaws','Features and Traits'}
-pg1 = pg1header | pg1col1 | pg1col2 | pg1col3
+		  'Performance','Persuasion','Religion','SleightofHand','Stealth','Survival']
+#pg1col1 = stats | set(skills) | {'ProficienciesLang'}
+#HPstats = {'HPMax','HPCurrent','HPTemp','HDTotal','HD'}
+#wpns = {'AttacksSpellcasting','Wpn Name','Wpn Name 2','Wpn Name 3',
+#		 'Wpn1 AtkBonus','Wpn2 AtkBonus','Wpn3 AtkBonus','Wpn1 Damage','Wpn2 Damage','Wpn3 Damage'}
+#pg1col2 = {'AC','Initiative','Speed'} | HPstats | wpns | {'GP','EP','SP','CP','PP','Equipment'}
+#pg1col3 = {'PersonalityTraits','Ideals','Bonds','Flaws','Features and Traits'}
+#pg1 = pg1header | pg1col1 | pg1col2 | pg1col3
 
-pg2header = {'CharacterName 2','Age','Height','Weight','Eyes','Skin','Hair'}
-pg2 = pg2header | {'Allies','FactionName','Backstory','Feat+Traits','Treasure'}
-IMG = {'CHARACTER IMAGE','Faction Symbol Image'} #Do not have key '/V'
+#pg2header = {'CharacterName 2','Age','Height','Weight','Eyes','Skin','Hair'}
+#pg2 = pg2header | {'Allies','FactionName','Backstory','Feat+Traits','Treasure'}
+#IMG = {'CHARACTER IMAGE','Faction Symbol Image'} #Do not have key '/V'
 
-spellstats = {'Spellcasting Class 2','SpellcastingAbility 2','SpellSaveDC 2','SpellAtkBonus 2'}
-negated = pg1 | pg2 | IMG | spellstats 
+#spellstats = {'Spellcasting Class 2','SpellcastingAbility 2','SpellSaveDC 2','SpellAtkBonus 2'}
+#negated = pg1 | pg2 | IMG | spellstats 
 #test = range(0,20)
 #print test[0:10]
 
@@ -68,41 +68,76 @@ class char:
 					forms[k[:8] + k[9:]] = forms.pop(k)
 				if len(k) == 13:
 					forms[k[:8] + k[9] + k[11:]] = forms.pop(k)
-
  		chars = ['a','b','c','d','e','f','g','h','i','j','k','l','m']
- 		spReplace = {'Spells 1014':'sp0a','Spells 1015':'sp1a','Spells 1046':'sp2a',
- 					'Spells 1048':'sp3a','Spells 1047':'sp3b','Spells 1061':'sp4a','Spells 1060':'sp4b',
- 					'Spells 1074':'sp5a','Spells 1073':'sp5b','Spells 1083':'sp6a','Spells 1082':'sp6b',
- 					'Spells 1092':'sp7a','Spells 1091':'sp7b','Spells 1101':'sp8a','Spells 1100':'sp8b',
- 					'Spells 1108':'sp9a','Spells 1107':'sp9b','Spells 1109':'sp9c'}
- 		spReplace.update(dict(('Spells 10'+str(k),'sp0'+chars[k-15]) for k in range(16,23)))# 0
- 		spReplace.update(dict(('Spells 10'+str(k),'sp1'+chars[k-22]) for k in range(23,34)))# 1
- 		spReplace.update(dict(('Spells 10'+str(k),'sp2'+chars[k-33]) for k in range(34,46)))# 2
- 		spReplace.update(dict(('Spells 10'+str(k),'sp3'+chars[k-47]) for k in range(49,60)))# 3
- 		spReplace.update(dict(('Spells 10'+str(k),'sp4'+chars[k-60]) for k in range(62,73)))# 4
- 		spReplace.update(dict(('Spells 10'+str(k),'sp5'+chars[k-73]) for k in range(75,82)))# 5
- 		spReplace.update(dict(('Spells 10'+str(k),'sp6'+chars[k-82]) for k in range(84,91)))# 6
- 		spReplace.update(dict(('Spells 10'+str(k),'sp7'+chars[k-91]) for k in range(93,100)))# 7
- 		spReplace.update(dict(('Spells 110'+str(k),'sp8'+chars[k]) for k in range(2,7)))# 8
-		spReplace.update(dict(('Spells 11'+str(k),'sp9'+chars[k-7]) for k in range(10,14)))# 9
-		cbReplace = {}
-		for k,v in forms.iteritems():
-			if 'Spells 1' in k:
-				forms[spReplace[k]] = forms.pop(k)
+ 		spReplace = {'014':'sp0a','015':'sp1a','046':'sp2a',
+ 					'048':'sp3a','047':'sp3b','061':'sp4a','060':'sp4b',
+ 					'074':'sp5a','073':'sp5b','083':'sp6a','082':'sp6b',
+ 					'092':'sp7a','091':'sp7b','101':'sp8a','100':'sp8b',
+ 					'108':'sp9a','107':'sp9b','109':'sp9c'}
+ 		spReplace.update(dict(('0'+str(k),'sp0'+chars[k-15]) for k in range(16,23)))
+ 		spReplace.update(dict(('0'+str(k),'sp1'+chars[k-22]) for k in range(23,34)))
+ 		spReplace.update(dict(('0'+str(k),'sp2'+chars[k-33]) for k in range(34,46)))
+ 		spReplace.update(dict(('0'+str(k),'sp3'+chars[k-47]) for k in range(49,60)))
+ 		spReplace.update(dict(('0'+str(k),'sp4'+chars[k-60]) for k in range(62,73)))
+ 		spReplace.update(dict(('0'+str(k),'sp5'+chars[k-73]) for k in range(75,82)))
+ 		spReplace.update(dict(('0'+str(k),'sp6'+chars[k-82]) for k in range(84,91)))
+ 		spReplace.update(dict(('0'+str(k),'sp7'+chars[k-91]) for k in range(93,100)))
+ 		spReplace.update(dict(('10'+str(k),'sp8'+chars[k]) for k in range(2,7)))
+		spReplace.update(dict(('1'+str(k),'sp9'+chars[k-7]) for k in range(10,14)))
+
+		cbReplace = {'251':'Spell Check 1a','313':'Spell Check 2a','310':'Spell Check 2b',
+					'315':'Spell Check 3a','314':'Spell Check 3b','317':'Spell Check 4a','316':'Spell Check 4b',
+					'319':'Spell Check 5a','318':'Spell Check 5b','321':'Spell Check 6a','320':'Spell Check 6b',
+					'323':'Spell Check 7a','322':'Spell Check 7b','325':'Spell Check 8a','324':'Spell Check 8b',
+					'327':'Spell Check 9a','326':'Spell Check 9b'}
+		cbReplace.update(dict(('30'+str(k),'SpellCheck1'+chars[k-8]) for k in range(9,20)))
+		cbReplace.update(dict(('30'+str(k),'SpellCheck2'+chars[k-18]) for k in range(20,31)))
+		cbReplace.update(dict(('30'+str(k),'SpellCheck3'+chars[k-29]) for k in range(31,42)))
+		cbReplace.update(dict(('30'+str(k),'SpellCheck4'+chars[k-40]) for k in range(42,53)))
+		cbReplace.update(dict(('30'+str(k),'SpellCheck5'+chars[k-51]) for k in range(53,60)))
+		cbReplace.update(dict(('30'+str(k),'SpellCheck6'+chars[k-58]) for k in range(60,67)))
+		cbReplace.update(dict(('30'+str(k),'SpellCheck7'+chars[k-65]) for k in range(67,74)))
+		cbReplace.update(dict(('30'+str(k),'SpellCheck8'+chars[k-72]) for k in range(74,79)))
+		cbReplace.update(dict(('30'+str(k),'SpellCheck9'+chars[k-77]) for k in range(79,84)))
+
+		for k in spReplace.keys():
+			forms[spReplace[k]] = forms.pop('Spells 1' + k)
+		for k in cbReplace.keys():
+			forms[cbReplace[k]] = forms.pop('Check Box ' + k)
+		for k in forms.keys():
 			if 'SlotsRemaining ' in k:
 				forms[k[:15] + str(int(k[15:])-18)] = forms.pop(k)
 			if 'SlotsTotal ' in k:
 				forms[k[:11] + str(int(k[11:])-18)] = forms.pop(k)
-		for k,v in forms.iteritems():
-			if v != None and ('Slot' in v or 'Cantrip' in v):
-				print k,v
+		forms['Save Str'] = (forms.pop('Check Box 11')=='/Yes',int(forms.pop('ST Strength')))
+
+
+		for x in range(18,23):
+			forms['Save '+Scores_Abbr[x-17]] = (forms.pop('Check Box '+str(x))=='/Yes',int(forms.pop('ST '+Scores_Full[x-17])))
+		for x in range(23,41):
+			forms['Skill '+skills[x-23]] = (forms.pop('Check Box '+str(x))=='/Yes',int(forms.pop(skills[x-23])))
+#		for k,v in forms.iteritems():
+#			if 'Skill' in k:
+#				print k,v
+
+
 
 
 '''
+Check Boxes:
+ Saving throws: ('/V':'/Yes')
+ 11: Str	 18: Dex	 19: Con	 20: Int	 21: Wis	 22: Cha
+ Death saves:
+ 12:14 Success	15:17 Failure
+ Skills:
+ 23: Acrobatics		 24: Animal Handling	 25: Arcana		 26: Athletics
+ 27: Deception		 28: History			 29: Insight	 30: Intimidation
+ 31: Investigation	 32: Medicine			 33: Nature		 34: Perception
+ 35: Performance	 36: Persuasion			 37: Religion	 38: Sleight of Hand
+ 39: Stealth		 40: Survival
+'''
+'''
 Spells
- Total: SlotsTotal <19-27>
- Expended: SlotsRemaining <19-27>
-  18 + level
 Spells <>
 Cantrip:	1014, 1016-1022 (in order)
 1st-level: 1015, 1023-1033
@@ -128,38 +163,16 @@ Cantrip:	1014, 1016-1022 (in order)
    '32' + [3,2] -> '10' + [92,91]
  '30' + [67-73] -> '10' + [93-99]
 8th-level:	'1010' + [0-6]
- '30' + [25,24] -> '11' + [01,00]
+   '32' + [5,4] -> '11' + [01,00]
  '30' + [74-78] -> '11' + [02-06]
 9th-level:	'1010' + [7-13]
    '32' + [7,6] -> '11' + [08,07]
  '30' + [79-83] -> '11' + [09-13]
+Total: SlotsTotal <19-27>
+Expended: SlotsRemaining <19-27>
+ 18 + level
 '''
-
-
-#		cantripNums = ['Spells 10' + str(num) for num in ([14]+range(16,23))]
-#		print cantripNums
-#		for k in forms.keys():
-#			if k == 'Spells 1014':
-#				forms['sp 0a'] = forms.pop[k]:
-#			if k == 'Check Box 251':
-#				forms['Slot 1a'] = forms.pop[k]
-#			if k == 'Spells 1015':
-#				forms['sp 1a'] = forms.pop[k]
-
-'''
-Check Boxes:
- Saving throws: ('/V':'/Yes')
- 11: Str	 18: Dex	 19: Con	 20: Int	 21: Wis	 22: Cha
- Death saves:
- 12:14 Success	15:17 Failure
- Skills:
- 23: Acrobatics		 24: Animal Handling	 25: Arcana		 26: Athletics
- 27: Deception		 28: History			 29: Insight	 30: Intimidation
- 31: Investigation	 32: Medicine			 33: Nature		 34: Perception
- 35: Performance	 36: Persuasion			 37: Religion	 38: Sleight of Hand
- 39: Stealth		 40: Survival
-'''
-test = char('testsheet')
+test = char('Jebeddo the Green')
 #test.toString()
 '''
 Spells 1014 	{'/V': u'Cantrip0', '/T': u'Spells 1014', '/Ff': 8388608, '/DV': u'', '/FT': '/Tx'}
