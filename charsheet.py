@@ -4,7 +4,7 @@ import codecs
 import pandas as pd
 
 
-Scores_Abbr = ['Str','Dex','Con','Int','Wis','Chr']
+Scores_Abbr = ['Str','Dex','Con','Int','Wis','Cha']
 #pg1header = {'CharacterName','ClassLevel','Background','PlayerName','Race','Alignment','XP'}
 #stats = {'STR','DEX','CON','INT','WIS','CHA','STRmod','DEXmod','CONmod','INTmod','WISmod','CHamod',
 #			'Inspiration','ProfBonus',
@@ -31,17 +31,20 @@ skills = ['Acrobatics','Animal','Arcana','Athletics','Deception','History','Pass
 
 
 class char:
+	XP = 0
 	level = 0		#Character Level
+	race = ''
+	classes = {}	#Key: class name. Value: class level. Multiclassing is possible, so dictionary
+	Scores = {}		#Key: abbreviated score. Value: tuple of stat and its modifier
+	Saves = {}		#						 Value: tuple of proficiency and modifier
+	Skills = {}		#						 Value: tuple of proficiency and modifier
 	AC = 0			#Armor Class
 	Prof = 0		#Proficiency Bonus
 	Init = 0		#Initiative Bonus
-	Speed = 0		#Movement distance per round (ft)
-	Scores = {'Str':(-1,-1),
-	          'Dex':(-1,-1),
-	          'Con':(-1,-1),
-	          'Int':(-1,-1),
-	          'Wis':(-1,-1),
-	          'Chr':(-1,-1)}
+	Speed = 0		#Movement distance per round (measured in ft)
+	HP = ()			#Tuple of maximum, current, and temporary HP
+	AC = 10
+
 	CastScore = None	#Which ability score do you use to cast spells, if able?
 	CastBonus = 0		#Spell attack rolls get this as a bonus to hit
 	CastDC = 0			#Difficulty class for opponents' saving throws against your spells
@@ -68,6 +71,54 @@ class char:
 					forms[k[:8] + k[9:]] = forms.pop(k)
 				if len(k) == 13:
 					forms[k[:8] + k[9] + k[11:]] = forms.pop(k)
+		forms['CHAmod'] = forms.pop('CHamod')
+
+#XP thresholds:
+#     0    300    900   2700   6500  14000  23000  34000  48000  64000
+# 85000 100000 120000 140000 165000 195000 225000 265000 305000 355000
+		self.XP = int(''.join(forms['XP'].split(' | ')[-1].split(',')))
+		if   self.XP <    300: self.level = 1
+		elif self.XP <    900: self.level = 2
+		elif self.XP <   2700: self.level = 3
+		elif self.XP <   6500: self.level = 4
+		elif self.XP <  14000: self.level = 5
+		elif self.XP <  23000: self.level = 6
+		elif self.XP <  34000: self.level = 7
+		elif self.XP <  48000: self.level = 8
+		elif self.XP <  64000: self.level = 9
+		elif self.XP <  85000: self.level = 10
+		elif self.XP < 100000: self.level = 11
+		elif self.XP < 120000: self.level = 12
+		elif self.XP < 140000: self.level = 13
+		elif self.XP < 165000: self.level = 14
+		elif self.XP < 195000: self.level = 15
+		elif self.XP < 225000: self.level = 16
+		elif self.XP < 265000: self.level = 17
+		elif self.XP < 305000: self.level = 18
+		elif self.XP < 355000: self.level = 19
+		else: self.level = 20
+		self.Prof = (self.level-1)/4 + 2
+		self.race = forms['Race']
+		self.classes = {str(cls.split()[0]) : int(cls.split()[1]) for cls in forms['ClassLevel'].split(' | ')[:-1]}
+		self.Scores = {stat: (int(forms[stat.upper()]),int(forms[stat.upper()+'mod'])) for stat in Scores_Abbr}
+		self.Saves['Str'] = (forms.pop('Check Box 11')=='/Yes',int(forms.pop('ST Strength')))
+		for x in range(18,23):
+			self.Saves[Scores_Abbr[x-17]] = (forms.pop('Check Box '+str(x))=='/Yes',int(forms.pop('ST '+Scores_Full[x-17])))
+		for x in range(23,41):
+			self.Skills[skills[x-23]] = (forms.pop('Check Box '+str(x))=='/Yes',int(forms.pop(skills[x-23])))
+		self.AC = int(forms['AC'])
+		self.Init = [int(x) for x in forms['Initiative'].split('|')]
+		self.speed = int(forms['Speed'])
+
+		HPMax = forms['HPMax']
+		HPCurrent = forms['HPCurrent']
+		if HPCurrent == None:
+			HPCurrent = HPMap
+		HPTemp = forms['HPTemp']
+		if HPTemp == None:
+			HPTemp = 0
+		self.HP = (int(HPMax),int(HPCurrent),int(HPTemp))
+
  		chars = ['a','b','c','d','e','f','g','h','i','j','k','l','m']
  		spReplace = {'014':'sp0a','015':'sp1a','046':'sp2a',
  					'048':'sp3a','047':'sp3b','061':'sp4a','060':'sp4b',
@@ -109,20 +160,21 @@ class char:
 				forms[k[:15] + str(int(k[15:])-18)] = forms.pop(k)
 			if 'SlotsTotal ' in k:
 				forms[k[:11] + str(int(k[11:])-18)] = forms.pop(k)
-		forms['Save Str'] = (forms.pop('Check Box 11')=='/Yes',int(forms.pop('ST Strength')))
-
-
-		for x in range(18,23):
-			forms['Save '+Scores_Abbr[x-17]] = (forms.pop('Check Box '+str(x))=='/Yes',int(forms.pop('ST '+Scores_Full[x-17])))
-		for x in range(23,41):
-			forms['Skill '+skills[x-23]] = (forms.pop('Check Box '+str(x))=='/Yes',int(forms.pop(skills[x-23])))
-#		for k,v in forms.iteritems():
-#			if 'Skill' in k:
-#				print k,v
 
 
 
 
+
+
+	def toString(self):
+		for k,v in self.Saves.iteritems():
+			print k,v
+		for k,v in self.Skills.iteritems():
+			print k,v
+
+
+test = char('Jebeddo the Green')
+#test.toString()
 '''
 Check Boxes:
  Saving throws: ('/V':'/Yes')
@@ -172,8 +224,6 @@ Total: SlotsTotal <19-27>
 Expended: SlotsRemaining <19-27>
  18 + level
 '''
-test = char('Jebeddo the Green')
-#test.toString()
 '''
 Spells 1014 	{'/V': u'Cantrip0', '/T': u'Spells 1014', '/Ff': 8388608, '/DV': u'', '/FT': '/Tx'}
 Spells 1016 	{'/V': u'Cantrip1', '/T': u'Spells 1016', '/Ff': 8388608, '/DV': u'', '/FT': '/Tx'}
