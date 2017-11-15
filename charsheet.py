@@ -119,75 +119,55 @@ class char:
 			HPTemp = 0
 		self.HP = (int(HPMax),int(HPCurrent),int(HPTemp))
 
- 		chars = ['a','b','c','d','e','f','g','h','i','j','k','l','m']
- 		spReplace = {'014':'sp0a','015':'sp1a','046':'sp2a',
- 					'048':'sp3a','047':'sp3b','061':'sp4a','060':'sp4b',
- 					'074':'sp5a','073':'sp5b','083':'sp6a','082':'sp6b',
- 					'092':'sp7a','091':'sp7b','101':'sp8a','100':'sp8b',
- 					'108':'sp9a','107':'sp9b','109':'sp9c'}
- 		spReplace.update(dict(('0'+str(k),'sp0'+chars[k-15]) for k in range(16,23)))
- 		spReplace.update(dict(('0'+str(k),'sp1'+chars[k-22]) for k in range(23,34)))
- 		spReplace.update(dict(('0'+str(k),'sp2'+chars[k-33]) for k in range(34,46)))
- 		spReplace.update(dict(('0'+str(k),'sp3'+chars[k-47]) for k in range(49,60)))
- 		spReplace.update(dict(('0'+str(k),'sp4'+chars[k-60]) for k in range(62,73)))
- 		spReplace.update(dict(('0'+str(k),'sp5'+chars[k-73]) for k in range(75,82)))
- 		spReplace.update(dict(('0'+str(k),'sp6'+chars[k-82]) for k in range(84,91)))
- 		spReplace.update(dict(('0'+str(k),'sp7'+chars[k-91]) for k in range(93,100)))
- 		spReplace.update(dict(('10'+str(k),'sp8'+chars[k]) for k in range(2,7)))
-		spReplace.update(dict(('1'+str(k),'sp9'+chars[k-7]) for k in range(10,14)))
+		spellList = [set(),set(),set(),set(),set(),set(),set(),set(),set(),set()] #tuple of check box and spell line
+		spellcheck = {'1014':None,#if None level = 0
+					'1015':'251',#if 251 level = 1
+					'1046':'313','1034':'310',#if 310 level = 2
+					'1048':'315','1047':'314',#else level = (value-308)/2
+					'1061':'317','1060':'316',
+					'1074':'319','1073':'318',
+					'1083':'321','1082':'320',
+					'1092':'323','1091':'322',
+					'1101':'325','1100':'324',
+					'1108':'327','1107':'326'}
+		spellcheck.update(dict(('10'+str(k),None) for k in range(16,23)))#can use these ranges to check for level
+		spellcheck.update(dict(('10'+str(k+14),'30'+str(k)) for k in range(9,20)))# 1
+		spellcheck.update(dict(('10'+str(k+15),'30'+str(k)) for k in range(20,31)))# 2
+		spellcheck.update(dict(('10'+str(k+18),'30'+str(k)) for k in range(31,42)))# 3
+		spellcheck.update(dict(('10'+str(k+20),'30'+str(k)) for k in range(42,53)))# 4
+		spellcheck.update(dict(('10'+str(k+22),'30'+str(k)) for k in range(53,60)))# 5
+		spellcheck.update(dict(('10'+str(k+24),'30'+str(k)) for k in range(60,67)))# 6
+		spellcheck.update(dict(('10'+str(k+26),'30'+str(k)) for k in range(67,74)))# 7
+		spellcheck.update(dict(('1' +str(k+28),'30'+str(k)) for k in range(74,79)))# 8
+		spellcheck.update(dict(('1' +str(k+30),'30'+str(k)) for k in range(79,84)))# 9
 
-		cbReplace = {'251':'Spell Check 1a','313':'Spell Check 2a','310':'Spell Check 2b',
-					'315':'Spell Check 3a','314':'Spell Check 3b','317':'Spell Check 4a','316':'Spell Check 4b',
-					'319':'Spell Check 5a','318':'Spell Check 5b','321':'Spell Check 6a','320':'Spell Check 6b',
-					'323':'Spell Check 7a','322':'Spell Check 7b','325':'Spell Check 8a','324':'Spell Check 8b',
-					'327':'Spell Check 9a','326':'Spell Check 9b'}
-		cbReplace.update(dict(('30'+str(k),'SpellCheck1'+chars[k-8]) for k in range(9,20)))
-		cbReplace.update(dict(('30'+str(k),'SpellCheck2'+chars[k-18]) for k in range(20,31)))
-		cbReplace.update(dict(('30'+str(k),'SpellCheck3'+chars[k-29]) for k in range(31,42)))
-		cbReplace.update(dict(('30'+str(k),'SpellCheck4'+chars[k-40]) for k in range(42,53)))
-		cbReplace.update(dict(('30'+str(k),'SpellCheck5'+chars[k-51]) for k in range(53,60)))
-		cbReplace.update(dict(('30'+str(k),'SpellCheck6'+chars[k-58]) for k in range(60,67)))
-		cbReplace.update(dict(('30'+str(k),'SpellCheck7'+chars[k-65]) for k in range(67,74)))
-		cbReplace.update(dict(('30'+str(k),'SpellCheck8'+chars[k-72]) for k in range(74,79)))
-		cbReplace.update(dict(('30'+str(k),'SpellCheck9'+chars[k-77]) for k in range(79,84)))
+		for k,v in spellcheck.iteritems():
+			if v == None or 1016 <= int(k) <= 1022:
+				spellList[0] |= {(None, forms.pop('Spells '+k))}
+			elif 1023 <= int(k) <= 1033 or k == '1015':
+				spellList[1] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+			elif 1034 <= int(k) <= 1046:
+				spellList[2] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+			elif 1047 <= int(k) <= 1059:
+				spellList[3] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+			elif 1060 <= int(k) <= 1072:
+				spellList[4] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+			elif 1073 <= int(k) <= 1081:
+				spellList[5] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+			elif 1082 <= int(k) <= 1090:
+				spellList[6] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+			elif 1091 <= int(k) <= 1099:
+				spellList[7] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+			elif 1100 <= int(k) <= 1106:
+				spellList[8] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+			elif 1107 <= int(k) <= 1113:
+				spellList[9] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
 
-		for k in spReplace.keys():
-			forms[spReplace[k]] = forms.pop('Spells 1' + k)
-		for k in cbReplace.keys():
-			forms[cbReplace[k]] = forms.pop('Check Box ' + k)
-		for k in forms.keys():
-			if 'SlotsRemaining ' in k:
-				forms[k[:15] + str(int(k[15:])-18)] = forms.pop(k)
-			if 'SlotsTotal ' in k:
-				forms[k[:11] + str(int(k[11:])-18)] = forms.pop(k)
+		for x in range(10):
+			print '\nLevel ' + str(x) + ':'
+			for y in spellList[x]:
+				print '',y
 
-
-
-
-
-
-	def toString(self):
-		for k,v in self.Saves.iteritems():
-			print k,v
-		for k,v in self.Skills.iteritems():
-			print k,v
-
-
-test = char('Jebeddo the Green')
-#test.toString()
-'''
-Check Boxes:
- Saving throws: ('/V':'/Yes')
- 11: Str	 18: Dex	 19: Con	 20: Int	 21: Wis	 22: Cha
- Death saves:
- 12:14 Success	15:17 Failure
- Skills:
- 23: Acrobatics		 24: Animal Handling	 25: Arcana		 26: Athletics
- 27: Deception		 28: History			 29: Insight	 30: Intimidation
- 31: Investigation	 32: Medicine			 33: Nature		 34: Perception
- 35: Performance	 36: Persuasion			 37: Religion	 38: Sleight of Hand
- 39: Stealth		 40: Survival
-'''
 '''
 Spells
 Spells <>
@@ -223,6 +203,60 @@ Cantrip:	1014, 1016-1022 (in order)
 Total: SlotsTotal <19-27>
 Expended: SlotsRemaining <19-27>
  18 + level
+'''
+#		cbReplace = {'251':'SpellCheck1a','313':'SpellCheck2a','310':'SpellCheck2b',
+#					'315':'SpellCheck3a','314':'SpellCheck3b','317':'SpellCheck4a','316':'SpellCheck4b',
+#					'319':'SpellCheck5a','318':'SpellCheck5b','321':'SpellCheck6a','320':'SpellCheck6b',
+#					'323':'SpellCheck7a','322':'SpellCheck7b','325':'SpellCheck8a','324':'SpellCheck8b',
+#					'327':'SpellCheck9a','326':'SpellCheck9b'}
+#		cbReplace.update(dict(('30'+str(k),'SpellCheck1'+chars[k-8]) for k in range(9,20)))
+#		cbReplace.update(dict(('30'+str(k),'SpellCheck2'+chars[k-18]) for k in range(20,31)))
+#		cbReplace.update(dict(('30'+str(k),'SpellCheck3'+chars[k-29]) for k in range(31,42)))
+#		cbReplace.update(dict(('30'+str(k),'SpellCheck4'+chars[k-40]) for k in range(42,53)))
+#		cbReplace.update(dict(('30'+str(k),'SpellCheck5'+chars[k-51]) for k in range(53,60)))
+#		cbReplace.update(dict(('30'+str(k),'SpellCheck6'+chars[k-58]) for k in range(60,67)))
+#		cbReplace.update(dict(('30'+str(k),'SpellCheck7'+chars[k-65]) for k in range(67,74)))
+#		cbReplace.update(dict(('30'+str(k),'SpellCheck8'+chars[k-72]) for k in range(74,79)))
+#		cbReplace.update(dict(('30'+str(k),'SpellCheck9'+chars[k-77]) for k in range(79,84)))
+
+
+
+
+
+'''
+	def toString(self):
+		for k,v in self.Saves.iteritems():
+			print k,v
+		for k,v in self.Skills.iteritems():
+			print k,v
+'''
+
+test = char('Jebeddo the Green')
+#test.toString()
+'''
+Check Boxes:
+ Saving throws: ('/V':'/Yes')
+ 11: Str	 18: Dex	 19: Con	 20: Int	 21: Wis	 22: Cha
+ Death saves:
+ 12:14 Success	15:17 Failure
+ Skills:
+ 23: Acrobatics		 24: Animal Handling	 25: Arcana		 26: Athletics
+'''
+'''		for k in spReplace.keys():
+			forms[spReplace[k]] = forms.pop('Spells 1' + k)
+		for k in cbReplace.keys():
+			forms[cbReplace[k]] = forms.pop('Check Box ' + k)
+		for k in forms.keys():
+			if 'SlotsRemaining ' in k:
+				forms[k[:15] + str(int(k[15:])-18)] = forms.pop(k)
+			if 'SlotsTotal ' in k:
+				forms[k[:11] + str(int(k[11:])-18)] = forms.pop(k)
+'''
+'''
+ 27: Deception		 28: History			 29: Insight	 30: Intimidation
+ 31: Investigation	 32: Medicine			 33: Nature		 34: Perception
+ 35: Performance	 36: Persuasion			 37: Religion	 38: Sleight of Hand
+ 39: Stealth		 40: Survival
 '''
 '''
 Spells 1014 	{'/V': u'Cantrip0', '/T': u'Spells 1014', '/Ff': 8388608, '/DV': u'', '/FT': '/Tx'}
