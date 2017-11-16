@@ -90,7 +90,6 @@ print 2*die1
 '''
 
 
-
 '''
 def chromaticorb(mod):
 	dmg = raw_input('Damage type? \n')
