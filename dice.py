@@ -5,13 +5,13 @@ import numpy as np
 # <N>d<S>, where <N> is the number of dice and <S> is the number of sides
 class dice(object):
 
-	count = 0
+	count = 0	
 	sides = 0
 	lastroll = []
 	lastmod = 0
 
 #input: NdS, where N and S are integers
-	def __init__(self,word):
+	def __init__(self,word,mod = 0):
 		params = word.split('d')
 		if params[0] == '':
 			params[0] = '1'
@@ -19,7 +19,7 @@ class dice(object):
 			assert int(params[0]) > 0 and int(params[1]) > 0
 			self.count = int(params[0])
 			self.sides = int(params[1])
-			self.roll()
+			self.roll(mod)
 		except AssertionError:
 			print 'No dice. (Must be positive)'
 		except ValueError:
@@ -27,7 +27,7 @@ class dice(object):
 
 #mod is a per-die modifier
 	def roll(self, mod = 0):
-		self.lastroll = [(np.random.randint(self.sides)+1 + mod) for x in range(self.count)]
+		self.lastroll = [(np.random.randint(self.sides)+1 + mod) for _ in range(self.count)]
 		self.lastroll.sort()
 		self.lastmod = mod
 		return self.lastroll
@@ -53,13 +53,19 @@ class dice(object):
 			return self.sum() + arg
 #Dice * int = total * int
 	def __mul__(self,num):
-		print 'left multiply'
 		return self.sum()*num
 #int * Dice = Roll dice int times, return the full list of rolls. Use last per-die modifier
 	def __rmul__(self,num):
-		print 'right multiply'
 		self.lastroll = []
-		for int in range(num):
+		for _ in range(num):
 			self.lastroll += self.roll(self.lastmod)
+		self.lastroll.sort()
 		return self.lastroll
-
+#Dice / int = sum / int
+	def __div__(self,num):
+		try:
+			assert num > 0
+		except:
+			print 'Divide by zero error'
+			return self.sum()
+		return self.sum()/num
