@@ -18,24 +18,15 @@ Might want to do:
 exit_cmd = {'quit','exit','halt','end','cease','desist','stop',''}
 Ab_Scores = ['Str','Dex','Con','Int','Wis','Chr']
 compendium = pd.read_excel(glob.glob('.\\spells.xlsx')[0])
-
+names = compendium['name']
 #df['label'] yields Series: column with that label and indexes
 #df.loc[index] yields Series: row with that index
 #df.loc[row,col]
-def info(spell): #receive name of spell only
-	names = compendium['name']
-	index = -1
-	for item in range(names.size):
-		if spell == compendium.loc[item,'name']:
-			index = item
-			break
-	if index == -1:
-		print 'Spell not found'
-		return -1
+def info(index):
 	spell = compendium.loc[index]
 	out = spell['name'] + '\n'
 	if not spell['level']:
-		out += spell['school'] + 'cantrip'
+		out += spell['school'] + ' cantrip'
 	else:
 		out += engine().ordinal(spell['level']) + '-level ' + spell['school']
 	out += '\nCasting Time: ' + spell['casting_time'] + '\nRange: ' + spell['spell_range']
@@ -55,6 +46,7 @@ def info(spell): #receive name of spell only
 	out += '\n\nClasses: ' + spell['casting_classes']
 	out += '\n\t' + spell['source_book'] + ', Page ' + str(spell['source_page']) + '\n'
 	print out
+#print names
 #properties:
 #name		level	school	is_ritual	casting_time	spell_range
 #comp_verb	comp_som	comp_mat	materials
@@ -65,15 +57,37 @@ def info(spell): #receive name of spell only
 # can_barbarian	can_bard	can_cleric	can_druid		can_fighter		can_monk,
 # can_paladin	can_ranger	can_rogue	can_sorcerer	can_warlock		can_wizard
 
+#print compendium.loc[0]
+def isSpell(spell):
+	spellFound = False
+	for x in range(names.size):
+		if spell == names[x].lower():
+			spellFound = x
+			break
+	return spellFound
 
+while True:
+	entry = raw_input('> ')
+	if entry in exit_cmd:
+		break
+	index = isSpell(entry)
+	if index:
+		info(index)
+	else:
+		pass  # some sort of dice parser
 
-
+'''
 die1 = dice.dice('3d4')
 die2 = dice.dice('2d10')
 print die1.roll(3)
 print die2.roll()
+print 'die1: ' + str(die1.sum())
+print 'die2: ' + str(die2.sum())
+print die1+die2+die1+5+die2
+print die2+5
 print die1*2
 print 2*die1
+'''
 
 
 
