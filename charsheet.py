@@ -9,9 +9,9 @@ Scores_Abbr = ['Str','Dex','Con','Int','Wis','Cha']
 #stats = {'STR','DEX','CON','INT','WIS','CHA','STRmod','DEXmod','CONmod','INTmod','WISmod','CHamod',
 #			'Inspiration','ProfBonus',
 Scores_Full = ['Strength','Dexterity','Constitution','Intelligence','Wisdom','Charisma']
-skills = ['Acrobatics','Animal','Arcana','Athletics','Deception','History','Passive',
+skills = ['Acrobatics','Animal','Arcana','Athletics','Deception','History',
 		  'Insight','Intimidation','Investigation','Medicine','Nature','Perception',
-		  'Performance','Persuasion','Religion','SleightofHand','Stealth','Survival']
+		  'Performance','Persuasion','Religion','Sleight of Hand','Stealth','Survival','Passive']
 #pg1col1 = stats | set(skills) | {'ProficienciesLang'}
 #HPstats = {'HPMax','HPCurrent','HPTemp','HDTotal','HD'}
 #wpns = {'AttacksSpellcasting','Wpn Name','Wpn Name 2','Wpn Name 3',
@@ -43,11 +43,13 @@ class char:
 	Init = 0		#Initiative Bonus
 	Speed = 0		#Movement distance per round (measured in ft)
 	HP = ()			#Tuple of maximum, current, and temporary HP
+	HD = ()			#Tuple of maximum and current hit dice
 	AC = 10
 
-	CastScore = None	#Which ability score do you use to cast spells, if able?
-	CastBonus = 0		#Spell attack rolls get this as a bonus to hit
-	CastDC = 0			#Difficulty class for opponents' saving throws against your spells
+	spellList = [set(),set(),set(),set(),set(),set(),set(),set(),set(),set()]	#tuple of check box and corresponding line
+	spellScore = None	#Which ability score do you use to cast spells, if able?
+	spellBonus = 0		#Spell attack rolls get this as a bonus to hit
+	spellDC = 0			#Difficulty class for opponents' saving throws against your magic
 
 	def __init__(self, name):
 		reload(sys)
@@ -72,11 +74,10 @@ class char:
 				if len(k) == 13:
 					forms[k[:8] + k[9] + k[11:]] = forms.pop(k)
 		forms['CHAmod'] = forms.pop('CHamod')
-
 #XP thresholds:
 #     0    300    900   2700   6500  14000  23000  34000  48000  64000
 # 85000 100000 120000 140000 165000 195000 225000 265000 305000 355000
-		self.XP = int(''.join(forms['XP'].split(' | ')[-1].split(',')))
+		self.XP = int(''.join(forms.pop('XP').split(' | ')[-1].split(',')))
 		if   self.XP <    300: self.level = 1
 		elif self.XP <    900: self.level = 2
 		elif self.XP <   2700: self.level = 3
@@ -98,39 +99,36 @@ class char:
 		elif self.XP < 355000: self.level = 19
 		else: self.level = 20
 		self.Prof = (self.level-1)/4 + 2
-		self.race = forms['Race']
-		self.classes = {str(cls.split()[0]) : int(cls.split()[1]) for cls in forms['ClassLevel'].split(' | ')[:-1]}
-		self.Scores = {stat: (int(forms[stat.upper()]),int(forms[stat.upper()+'mod'])) for stat in Scores_Abbr}
+		self.race = forms.pop('Race')
+		self.classes = {str(cls.split()[0]) : int(cls.split()[1]) for cls in forms.pop('ClassLevel').split(' | ')[:-1]}
+		self.Scores = {stat: (int(forms.pop(stat.upper())),int(forms.pop(stat.upper()+'mod'))) for stat in Scores_Abbr}
 		self.Saves['Str'] = (forms.pop('Check Box 11')=='/Yes',int(forms.pop('ST Strength')))
 		for x in range(18,23):
 			self.Saves[Scores_Abbr[x-17]] = (forms.pop('Check Box '+str(x))=='/Yes',int(forms.pop('ST '+Scores_Full[x-17])))
 		for x in range(23,41):
-			self.Skills[skills[x-23]] = (forms.pop('Check Box '+str(x))=='/Yes',int(forms.pop(skills[x-23])))
-		self.AC = int(forms['AC'])
-		self.Init = [int(x) for x in forms['Initiative'].split('|')]
-		self.speed = int(forms['Speed'])
+			self.Skills[skills[x-23]] = (forms.pop('Check Box '+str(x))=='/Yes',int(forms.pop(''.join(skills[x-23].split(' ')))))
+			if skills[x-23] == 'Animal':
+				self.Skills['Animal Handling'] = self.Skills.pop('Animal')
+		self.Skills['Passive Perception'] =(None,int(forms.pop('Passive')))
+		self.AC = int(forms.pop('AC'))
+		self.Init = [int(x) for x in forms.pop('Initiative').split('|')]
+		self.speed = int(forms.pop('Speed'))
 
-		HPMax = forms['HPMax']
-		HPCurrent = forms['HPCurrent']
+		HPMax = forms.pop('HPMax')
+		HPCurrent = forms.pop('HPCurrent')
 		if HPCurrent == None:
 			HPCurrent = HPMap
-		HPTemp = forms['HPTemp']
+		HPTemp = forms.pop('HPTemp')
 		if HPTemp == None:
 			HPTemp = 0
 		self.HP = (int(HPMax),int(HPCurrent),int(HPTemp))
+		self.HD = (int(forms.pop('HDTotal')),forms.pop('HD'))
+		assert self.HD[0] == self.level
 
-		spellList = [set(),set(),set(),set(),set(),set(),set(),set(),set(),set()] #tuple of check box and spell line
-		spellcheck = {'1014':None,#if None level = 0
-					'1015':'251',#if 251 level = 1
-					'1046':'313','1034':'310',#if 310 level = 2
-					'1048':'315','1047':'314',#else level = (value-308)/2
-					'1061':'317','1060':'316',
-					'1074':'319','1073':'318',
-					'1083':'321','1082':'320',
-					'1092':'323','1091':'322',
-					'1101':'325','1100':'324',
-					'1108':'327','1107':'326'}
-		spellcheck.update(dict(('10'+str(k),None) for k in range(16,23)))#can use these ranges to check for level
+		spellcheck = {'1014':None,'1015':'251','1046':'313','1034':'310','1048':'315','1047':'314',
+					'1061':'317','1060':'316','1074':'319','1073':'318','1083':'321','1082':'320',
+					'1092':'323','1091':'322','1101':'325','1100':'324','1108':'327','1107':'326'}
+		spellcheck.update(dict(('10'+str(k),None) for k in range(16,23)))# 0
 		spellcheck.update(dict(('10'+str(k+14),'30'+str(k)) for k in range(9,20)))# 1
 		spellcheck.update(dict(('10'+str(k+15),'30'+str(k)) for k in range(20,31)))# 2
 		spellcheck.update(dict(('10'+str(k+18),'30'+str(k)) for k in range(31,42)))# 3
@@ -142,32 +140,98 @@ class char:
 		spellcheck.update(dict(('1' +str(k+30),'30'+str(k)) for k in range(79,84)))# 9
 
 		for k,v in spellcheck.iteritems():
-			if v == None or 1016 <= int(k) <= 1022:
-				spellList[0] |= {(None, forms.pop('Spells '+k))}
+			if v == None or 1016 <= int(k) <= 1022:	
+				self.spellList[0] |= {(None, forms.pop('Spells '+k))}
 			elif 1023 <= int(k) <= 1033 or k == '1015':
-				spellList[1] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+				self.spellList[1] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
 			elif 1034 <= int(k) <= 1046:
-				spellList[2] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+				self.spellList[2] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
 			elif 1047 <= int(k) <= 1059:
-				spellList[3] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+				self.spellList[3] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
 			elif 1060 <= int(k) <= 1072:
-				spellList[4] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+				self.spellList[4] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
 			elif 1073 <= int(k) <= 1081:
-				spellList[5] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+				self.spellList[5] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
 			elif 1082 <= int(k) <= 1090:
-				spellList[6] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+				self.spellList[6] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
 			elif 1091 <= int(k) <= 1099:
-				spellList[7] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+				self.spellList[7] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
 			elif 1100 <= int(k) <= 1106:
-				spellList[8] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+				self.spellList[8] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
 			elif 1107 <= int(k) <= 1113:
-				spellList[9] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+				self.spellList[9] |= {(forms.pop('Check Box '+v)=='/Yes' , forms.pop('Spells '+k))}
+		self.spellScore = forms.pop('SpellcastingAbility 2')
+		self.spellBonus = self.Prof + self.Scores[self.spellScore][1]
+		self.spellDC = 8 + self.spellBonus
 
-		for x in range(10):
-			print '\nLevel ' + str(x) + ':'
-			for y in spellList[x]:
-				print '',y
 
+#		for k,v in forms.iteritems():
+#			print k,v
+#		print '\n'*5
+
+
+
+
+
+
+
+	def toString(self):
+		out = ''
+		out += self.race + ' ' + str(self.level) + ' ('
+		first = True
+		for cls,lvl in self.classes.iteritems():
+			if not first:
+				out += ' | '
+			out += cls + ' ' + str(lvl)
+			first = False
+		out += ')\n'
+
+		out += ' HP: '
+		if self.HP[2] != 0:
+			out += '(' + str(self.HP[2]) + ')  '
+		out += str(self.HP[1]) + ' / ' + str(self.HP[0])
+
+		out += '\n HD: ' + self.HD[1] + ' / ' + str(self.HD[0])
+
+		for x in range(6):
+			tup = self.Scores[Scores_Abbr[x]]
+			out += '\n  ' + Scores_Abbr[x] + ': ' + str(tup[0]) + ' ('
+			if tup[1] > 0:
+				out += '+'
+			out += str(tup[1]) + ')'
+
+		out += '\nSaves:'
+		for k,v in self.Saves.iteritems():
+			out += '\n  ' + k + ': (' + str(v[0]) + ')\t'
+			if v[1] > 0:
+				out += '+'
+			out += str(v[1])
+
+		out += '\nSkills:'
+		for k,v in self.Skills.iteritems():
+			out += '\n  ' + k + ': ' + '\t'*((23-len(k))/4)
+			if v[0] == None:
+				out += '\t\t'
+			else:
+				out += '(' + str(v[0]) + ')\t'
+			if v[1] > 0:
+				out += '+'
+			out += str(v[1]) 
+
+		out += '\nProficiency Bonus: +' + str(self.Prof) + '\nArmor Class: ' + str(self.AC) + '\nInitiative Bonus: '
+		first = True
+		for x in self.Init:
+			if not first:
+				out += '/'
+			out += '+' + str(x)
+			first = False
+
+			
+		return out
+
+
+test = char('Jebeddo the Green')
+print test.toString()
 '''
 Spells
 Spells <>
@@ -204,35 +268,6 @@ Total: SlotsTotal <19-27>
 Expended: SlotsRemaining <19-27>
  18 + level
 '''
-#		cbReplace = {'251':'SpellCheck1a','313':'SpellCheck2a','310':'SpellCheck2b',
-#					'315':'SpellCheck3a','314':'SpellCheck3b','317':'SpellCheck4a','316':'SpellCheck4b',
-#					'319':'SpellCheck5a','318':'SpellCheck5b','321':'SpellCheck6a','320':'SpellCheck6b',
-#					'323':'SpellCheck7a','322':'SpellCheck7b','325':'SpellCheck8a','324':'SpellCheck8b',
-#					'327':'SpellCheck9a','326':'SpellCheck9b'}
-#		cbReplace.update(dict(('30'+str(k),'SpellCheck1'+chars[k-8]) for k in range(9,20)))
-#		cbReplace.update(dict(('30'+str(k),'SpellCheck2'+chars[k-18]) for k in range(20,31)))
-#		cbReplace.update(dict(('30'+str(k),'SpellCheck3'+chars[k-29]) for k in range(31,42)))
-#		cbReplace.update(dict(('30'+str(k),'SpellCheck4'+chars[k-40]) for k in range(42,53)))
-#		cbReplace.update(dict(('30'+str(k),'SpellCheck5'+chars[k-51]) for k in range(53,60)))
-#		cbReplace.update(dict(('30'+str(k),'SpellCheck6'+chars[k-58]) for k in range(60,67)))
-#		cbReplace.update(dict(('30'+str(k),'SpellCheck7'+chars[k-65]) for k in range(67,74)))
-#		cbReplace.update(dict(('30'+str(k),'SpellCheck8'+chars[k-72]) for k in range(74,79)))
-#		cbReplace.update(dict(('30'+str(k),'SpellCheck9'+chars[k-77]) for k in range(79,84)))
-
-
-
-
-
-'''
-	def toString(self):
-		for k,v in self.Saves.iteritems():
-			print k,v
-		for k,v in self.Skills.iteritems():
-			print k,v
-'''
-
-test = char('Jebeddo the Green')
-#test.toString()
 '''
 Check Boxes:
  Saving throws: ('/V':'/Yes')
