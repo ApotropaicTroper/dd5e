@@ -91,23 +91,6 @@ print 2*die1
 
 
 
-#while True:
-#	command = raw_input('> ')
-#	if command in exit_cmd:
-#		break;
-#	info(command)
-#	isRoll = 'd' in command and any(str.isdigit(char) for char in command)
-#	print isRoll
-#	if isRoll:
-#		roll(command)
-#
-'''
-If number and 'd' in input, then try to roll
-
-
-
-
-'''
 '''
 def chromaticorb(mod):
 	dmg = raw_input('Damage type? \n')
