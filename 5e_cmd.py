@@ -70,43 +70,78 @@ def isSpell(spell):
 
 
 
+#ought to clean this up
+def dparse(word):
 
-def dparse(word):#returns list of terms
-
-
-
-
-	temp = word.split('+')
-	word = []
-	for term in temp:
+	word = word.split('+')
+	temp = []
+	for term in word:
 		term = term.split('-')
-		word.append(term[0].strip())
+		temp.append(term[0].strip())
 		if len(term) == 1:
 			continue
-		word.extend('-'+str(sub).strip() for sub in term[1:])
+		temp.extend('-'+str(sub).strip() for sub in term[1:])
 
-	out = []
-	for index in range(len(word)):
-		if 'd' in word[index] and '*' not in word[index]:
-			die = dice.dice(word[index])
-			out.append(die.lastroll)
+# if a term has '*('
+# 	merge that term with everything after it until term has ')'
+# if a term has ')*'
+#	merge that term with everything before it until term has '('
+	lparen = 0
+	while lparen < len(temp):
+		if '*(' in temp[lparen] and ')' not in temp[lparen]:
+			rparen = lparen
+			while rparen < len(temp):
+				if ')' in temp[rparen]:
+					if temp[rparen][0] == '-':
+						temp[lparen:rparen+1] = [''.join(temp[lparen:rparen+1])]						
+					else:
+						temp[lparen:rparen+1] = ['+'.join(temp[lparen:rparen+1])]
+					break
+				rparen += 1
+		elif '(' in temp[lparen] and ')*' not in temp[lparen]:
+			rparen = lparen
+			while rparen < len(temp):
+				if ')*' in temp[rparen]:
+					if temp[rparen][0] == '-':
+						temp[lparen:rparen+1] = [''.join(temp[lparen:rparen+1])]						
+					else:
+						temp[lparen:rparen+1] = ['+'.join(temp[lparen:rparen+1])]
+					break
+				rparen += 1
+		lparen += 1
+
+	word = []
+	for term in temp:
+		if 'd' not in term:
+			word.append(eval(term))
 		else:
-			out.append(int(word[index]))
-	return out
-
-
+			die = dice.dice(re.search('\d+d\d+',term).group())
+			if die.dietype() == term:
+				die.roll()
+			else:
+				term = term.split('*')
+				if 'd' in term[0]:
+					die * int(term[1])
+				elif 'd' in term[1]:
+					int(term[0]) * die
+			word.append(die.lastroll)
+	for term in word:
+		if type(term[0]) is list:
+			for unit in term:
+				print unit, '=',sum(unit)
+		else:
+			print term, '=', sum(term)
 
 
 '''
 Split based on +/-. Anything within parentheses should be its own term (nested list?), including * attached to it
 For each term:
-	If 'd' in the term, that's a die object. Roll
 	If '*' in term, then consider the operands
 		if die * num, replace with sum*int
 		if num * die, roll die num times
+	If 'd' in the term, that's a die object. Roll
 
 '''
-
 
 
 
@@ -119,7 +154,18 @@ while True:
 	if index:
 		info(index)
 	elif 'd' in entry:
-		print dparse(entry)
+		dparse(entry)
+#		die = dice.dice(re.search('\d*d\d+',entry).group())
+#		print entry
+#		entry = re.sub('\d*d\d+','die',entry)
+#		print entry
+#		if entry == 'die':
+#			exec 'die.roll()'
+#		else:
+#			exec 'result = ' + entry
+#		print die.lastroll, '=', die.sum()
+
+#		dparse(entry)
 #parse command: Every <int>d<int> becomes a dice object. Roll each dice object. Print list of rolls and their sum
 
 
