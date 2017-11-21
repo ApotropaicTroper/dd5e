@@ -1,5 +1,6 @@
 import glob
 from inflect import engine	#inflecting numbers (i.e. 1 -> 1st)
+import re
 import pandas as pd
 import numpy as np
 import dice
@@ -22,6 +23,7 @@ names = compendium['name']
 #df['label'] yields Series: column with that label and indexes
 #df.loc[index] yields Series: row with that index
 #df.loc[row,col]
+
 def info(index):
 	spell = compendium.loc[index]
 	out = spell['name'] + '\n'
@@ -61,10 +63,53 @@ def info(index):
 def isSpell(spell):
 	spellFound = False
 	for x in range(names.size):
-		if spell == names[x].lower():
+		if spell.lower() == names[x].lower():
 			spellFound = x
 			break
 	return spellFound
+
+
+
+
+def dparse(word):#returns list of terms
+
+
+
+
+	temp = word.split('+')
+	word = []
+	for term in temp:
+		term = term.split('-')
+		word.append(term[0].strip())
+		if len(term) == 1:
+			continue
+		word.extend('-'+str(sub).strip() for sub in term[1:])
+
+	out = []
+	for index in range(len(word)):
+		if 'd' in word[index] and '*' not in word[index]:
+			die = dice.dice(word[index])
+			out.append(die.lastroll)
+		else:
+			out.append(int(word[index]))
+	return out
+
+
+
+
+'''
+Split based on +/-. Anything within parentheses should be its own term (nested list?), including * attached to it
+For each term:
+	If 'd' in the term, that's a die object. Roll
+	If '*' in term, then consider the operands
+		if die * num, replace with sum*int
+		if num * die, roll die num times
+
+'''
+
+
+
+
 
 while True:
 	entry = raw_input('> ')
@@ -73,173 +118,47 @@ while True:
 	index = isSpell(entry)
 	if index:
 		info(index)
-	else:
-		pass  # some sort of dice parser
+	elif 'd' in entry:
+		print dparse(entry)
+#parse command: Every <int>d<int> becomes a dice object. Roll each dice object. Print list of rolls and their sum
 
-'''
-die1 = dice.dice('3d4')
-die2 = dice.dice('2d10')
-print die1.roll(3)
-print die2.roll()
-print 'die1: ' + str(die1.sum())
-print 'die2: ' + str(die2.sum())
-print die1+die2+die1+5+die2
-print die2+5
-print die1*2
-print 2*die1
-'''
+
+
+
+
+
+
+
 
 
 '''
-def chromaticorb(mod):
-	dmg = raw_input('Damage type? \n')
-	slot = 0
-	while slot < 1 or slot > 9:
-		try:
-			slot = int(raw_input('Spell slot level? '))
-		except:
-			print 'That must be a number, 1-9'
++
+ die + die = sum + sum
+ die + int = sum + int
 
-	roll('d20+' + str(char.CastBonus))
-	response = raw_input('\nHit? ')
-	if 'a' in response or 'd' in response:
-		roll('d20+' + str(char.CastBonus))
-	elif 'n' in response:
-		print 'Too Bad!'
-		return -1
-	if 'y' in response or 'y' in raw_input('\nHit? ').lower():
-		roll(str(slot+2) + 'd8')
-		print ' Fire/Cold/Lightning/Thunder/Acid/Poison + damage.'
-	else:
-		print 'Too bad!'	
+-
+ die - int = sum - int
+ Equivalent to '+' with int < 0
+*
+ die * int = sum * int
+ int * die = roll die <int> times. Returns list of all rolls
+  int must be positive
+/
+ die / int = sum / int
+()
+ (die + int) = same as die + int
+ int * (die + int) = list of <int 1> rolls of die with <int2> as modifier
+  Examples:
+   3 * (1d4 + 1) -> [1d4+1, 1d4+1, 1d4+1]
+   3 * (d20 + 8) -> [d20+8, d20+8, d20+8]
 
-def eldritchblast(mod):
-	hits = -1
-	for x in range(0,(char.level+1)/6 + 1):
-		roll('d20+' + str(char.CastBonus))
-		print ''
-	while hits < 0:
-		try:
-			hits = int(raw_input('How many hits? '))
-			if hits > (char.level+1)/6 + 1:
-				print 'Not enough beams!'
-				hits = -1
-				continue
-		except:
-			print 'That\'s not a number!'
-	if not hits:
-		print 'Too bad!'
-		return -1
-	for x in range(0, hits):
-		roll('d10')
-		print 'Force damage.'
+3 (d20+8) *
 
-def falselife(mod):
-	slot = 0
-	while slot < 1 or slot > 9:
-		try:
-			slot = int(raw_input('Spell slot level? '))
-		except:
-			print 'That must be a number, 1-9'
-	roll('d4+1 + ' + str((slot-1)*5))
-	print ' Temporary hit points.'
-
-def firebolt(mod):#'a' for advantage, 'd' for disadvantage
-	roll('d20+' + str(char.CastBonus))
-	response = raw_input('\nHit? ')
-	if 'a' in response or 'd' in response:
-		roll('d20+' + str(char.CastBonus))
-	elif 'n' in response:
-		print 'Too Bad!'
-		return -1
-	if 'y' in response or 'y' in raw_input('\nHit? ').lower():
-		roll(str((char.level+1)/6 + 1) + 'd10')
-		print 'Fire damage.'
-	else:
-		print 'Too bad!'
-
-def lightningbolt(mod):
-	slot = 0
-	while slot < 3 or slot > 9:
-		try:
-			slot = int(raw_input('Spell slot level? '))
-		except:
-			print 'That must be a number, 3-9'
-	roll(str(slot+5) + 'd6')
-	print 'Lightning damage.'
-
-def magicmissile(mod):
-	slot = 0
-	while slot < 1 or slot > 9:
-		try:
-			slot = int(raw_input('Spell slot level? '))
-		except:
-			print 'That must be a number, 1-9'
-	for x in range(0,slot+2):
-		roll('d4+1')
-		print 'Force damage.'
-
-def rayoffrost(mod):
-	roll('d20+' + str(char.CastBonus))
-	response = raw_input('\nHit? ')
-	if 'a' in response or 'd' in response:
-		roll('d20+' + str(char.CastBonus))
-	elif 'n' in response:
-		print 'Too Bad!'
-		return -1
-	if 'y' in response or 'y' in raw_input('\nHit? ').lower():
-		roll(str((char.level+1)/6 + 1) + 'd8')
-		print 'Cold damage.'
-	else:
-		print 'Too bad!'
-
-def scorchingray(mod):
-	slot = 0
-	while slot < 2 or slot > 9:
-		try:
-			slot = int(raw_input('Spell slot level? '))
-		except:
-			print 'That must be a number, 2-9'
-
-	for x in range(0,slot+1):
-		roll('d20+' + str(char.CastBonus))
-		print ''
-	hits = -1
-	while hits < 0:
-		try:
-			hits = int(raw_input('How many hits? '))
-			if hits > slot+1:
-				print 'Not enough beams!'
-				hits = -1
-		except:
-			print 'That\'s not a number!'
-	if not hits:
-		print 'Too bad!'
-		return -1
-	for x in range(0,hits):
-		roll('2d6')
-		print 'Fire damage.'	
-
-def witchbolt(mod):
-	slot = 0
-	while slot < 1 or slot > 9:
-		try:
-			slot = int(raw_input('Spell slot level? '))
-		except:
-			print 'That must be a number, 1-9'
-	roll('d20+' + str(char.CastBonus))
-	response = raw_input('\nHit? ')
-	if 'a' in response or 'd' in response:
-		roll('d20+' + str(char.CastBonus))
-	elif 'n' in response:
-		print 'Too Bad!'
-		return -1
-	if 'y' in response or 'y' in raw_input('\nHit? ').lower():
-		roll(str(slot) + 'd12')
-		print 'Lightning damage.'
-	else:
-		print 'Too bad!'
 '''
+
+
+
+
 '''	if 'd' not in cmd:
 		print 'That\'s no roll at all!'
 		return -1
@@ -269,37 +188,6 @@ def witchbolt(mod):
 	return result'''
 
 
-
-
-'''
-char = charsheet.char(raw_input('Name? '))
-while True:
-	run = -1
-	command = raw_input('> ')
-	if 'info' in command: 	#print spell description
-		try:
-			info(command[5:])
-		except:
-			char.toString()
-		continue
-	if command in exit_cmd:# and 'y' in raw_input('Are you sure? y/n\n').lower():
-		break
-#is the command a spell in the spell list? If so, run spell command
-#otherwise attempt to roll dice
-	files = glob.glob('.\\Spells\\' + command.replace(' ','') + '.txt')
-	if len(files):
-		try:
-			mod = char.CastScore
-			eval(command.replace(' ','') + '(\'' + mod + '\')')
-		except:
-			info(command)
-		continue
-	try:
-		run = roll(command)
-	except:
-		print 'Malformed roll.\ne.g. 2d10+3-2'
-	print ''
-'''
 
 
 
