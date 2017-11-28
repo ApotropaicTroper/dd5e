@@ -2,7 +2,7 @@ import glob
 from inflect import engine	#inflecting numbers (i.e. 1 -> 1st)
 import re
 import pandas as pd
-import numpy as np
+#import numpy as np
 import dice
 #from string import capwords
 #import charsheet
@@ -93,7 +93,7 @@ def parenMatch(tokens, index):
 	raise Exception # to do: make a ParenthesesMatchException
 
 def dparse(word):#returns list of terms
-	print word
+	print 'sequence:', word
 	index = 0
 	while index < len(word):
 		if '(' in word[index]:
@@ -103,12 +103,22 @@ def dparse(word):#returns list of terms
 			except:
 				print 'Parentheses Matching Error'
 				raise
-
-			dparse(word[index+1:rparen]) #skip to rparen+1 after this
+			rep = 1 # repeat parenthesized expression rep times
+			if index != 0 and word[index-1] == '*':
+				rep = int(word[index-2])
+			print 'rep:', rep
+			for _ in range(rep):
+				dparse(word[index+1:rparen]) #skip to rparen+1 after this
 			index = rparen
 
 		elif 'd' in word[index]:
-			print dice.roll(word[index].split('d'))
+			print 'roll:', dice.roll(word[index].split('d')), '=', dice.total()
+
+
+# 
+# x * (1d4+1):
+# 1d4+1 three times
+#
 
 		index += 1
 
@@ -121,70 +131,6 @@ int * die
 die / int
 die + die
 '''
-'''
-this way is messy and doesn't work. It's garbage:
-	word = word.split('+')
-	temp = []
-	for term in word:
-		term = term.split('-')
-		temp.append(term[0].strip())
-		if len(term) == 1:
-			continue
-		temp.extend('-'+str(sub).strip() for sub in term[1:])
-
-# if a term has '*('
-# 	merge that term with everything after it until term has ')'
-# if a term has ')*'
-#	merge that term with everything before it until term has '('
-	lparen = 0
-	while lparen < len(temp):
-		if '*(' in temp[lparen] and ')' not in temp[lparen]:
-			rparen = lparen
-			while rparen < len(temp):
-				if ')' in temp[rparen]:
-					if temp[rparen][0] == '-':
-						temp[lparen:rparen+1] = [''.join(temp[lparen:rparen+1])]						
-					else:
-						temp[lparen:rparen+1] = ['+'.join(temp[lparen:rparen+1])]
-					break
-				rparen += 1
-		elif '(' in temp[lparen] and ')*' not in temp[lparen]:
-			rparen = lparen
-			while rparen < len(temp):
-				if ')*' in temp[rparen]:
-					if temp[rparen][0] == '-':
-						temp[lparen:rparen+1] = [''.join(temp[lparen:rparen+1])]						
-					else:
-						temp[lparen:rparen+1] = ['+'.join(temp[lparen:rparen+1])]
-					break
-				rparen += 1
-		lparen += 1
-
-	word = []
-	for term in temp:
-		if 'd' not in term:
-			word.append(eval(term))
-		else:
-			die = dice.dice(re.search('\d*d\d+',term).group())
-			if die.dietype() == term:
-				die.roll()
-			else:
-				term = term.split('*')
-				if 'd' in term[0]:
-					die * int(term[1])
-				elif 'd' in term[1]:
-					int(term[0]) * die
-			word.append(die.lastroll)
-	for term in word:
-		if type(term[0]) is list:
-			for unit in term:
-				print unit, '=',sum(unit)
-		else:
-			print term, '=', sum(term)
-'''
-
-
-
 
 
 while True:
