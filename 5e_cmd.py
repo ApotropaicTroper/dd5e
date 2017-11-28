@@ -68,11 +68,61 @@ def isSpell(spell):
 			break
 	return spellFound
 
+def tokenize(word):
+	word = [token for token in re.split('(\d+|\W)',word) if token.strip()]
+	while any('d' == token for token in word):
+		index = word.index('d')
+		if index == 0 or word[index-1].isdigit():
+			word[index-1:index+2] = [''.join(word[index-1:index+2])]
+		else:
+			word[index:index+2] = ['1' + word[index] + word[index+1]]
+	return word
 
+#recieve list and index of left parenthesis to be matched
+def parenMatch(tokens, index):
+	nestLevel = 0
+	for index in range(index,len(tokens)):
+		if '(' in tokens[index]: 
+			nestLevel = nestLevel + 1
+		if ')' in tokens[index]:
+			nestLevel = nestLevel - 1
+			if nestLevel == 0:
+				return index
+		if nestLevel < 0:
+			break
+	raise Exception # to do: make a ParenthesesMatchException
 
-#ought to clean this up
-def dparse(word):
+def dparse(word):#returns list of terms
+	print word
+	index = 0
+	while index < len(word):
+		if '(' in word[index]:
+			rparen = 0#find matching right parenthesis
+			try:
+				rparen = parenMatch(word,index)
+			except:
+				print 'Parentheses Matching Error'
+				raise
 
+			dparse(word[index+1:rparen]) #skip to rparen+1 after this
+			index = rparen
+
+		elif 'd' in word[index]:
+			print dice.roll(word[index].split('d'))
+
+		index += 1
+
+'''
+allowed:
+die + int
+die - int
+die * int
+int * die
+die / int
+die + die
+'''
+'''
+this way is messy and doesn't work. It's garbage:
 	word = word.split('+')
 	temp = []
 	for term in word:
@@ -115,7 +165,7 @@ def dparse(word):
 		if 'd' not in term:
 			word.append(eval(term))
 		else:
-			die = dice.dice(re.search('\d+d\d+',term).group())
+			die = dice.dice(re.search('\d*d\d+',term).group())
 			if die.dietype() == term:
 				die.roll()
 			else:
@@ -131,17 +181,8 @@ def dparse(word):
 				print unit, '=',sum(unit)
 		else:
 			print term, '=', sum(term)
-
-
 '''
-Split based on +/-. Anything within parentheses should be its own term (nested list?), including * attached to it
-For each term:
-	If '*' in term, then consider the operands
-		if die * num, replace with sum*int
-		if num * die, roll die num times
-	If 'd' in the term, that's a die object. Roll
 
-'''
 
 
 
@@ -154,7 +195,7 @@ while True:
 	if index:
 		info(index)
 	elif 'd' in entry:
-		dparse(entry)
+		dparse(tokenize(entry))
 #		die = dice.dice(re.search('\d*d\d+',entry).group())
 #		print entry
 #		entry = re.sub('\d*d\d+','die',entry)
