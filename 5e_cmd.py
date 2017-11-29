@@ -96,7 +96,11 @@ def dparse(word):#returns list of terms
 	print 'sequence:', word
 	index = 0
 	while index < len(word):
-		if '(' in word[index]:
+		if word[index] == '*' and 'd' in word[index+1]:
+			for _ in range(int(word[index-1])):
+				dparse([word[index+1]])
+			index = index + 1
+		elif '(' in word[index]:
 			rparen = 0#find matching right parenthesis
 			try:
 				rparen = parenMatch(word,index)
@@ -110,9 +114,16 @@ def dparse(word):#returns list of terms
 			for _ in range(rep):
 				dparse(word[index+1:rparen]) #skip to rparen+1 after this
 			index = rparen
-
 		elif 'd' in word[index]:
-			print 'roll:', dice.roll(word[index].split('d')), '=', dice.total()
+			print 'roll:', dice.roll(word[index].split('d'))
+
+#determine modifier(s)
+# get list of all terms on the same nesting level
+#  dice groups become equal to result
+#  parenthesized expressions become equal to result
+#, positive and negative (i.e. ['-','1','+','2'] -> [-1,2])
+
+#			 '=', dice.total(1)
 
 
 # 
