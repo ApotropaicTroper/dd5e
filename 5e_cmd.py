@@ -93,12 +93,13 @@ def parenMatch(tokens, index):
 	raise Exception # to do: make a ParenthesesMatchException
 
 def dparse(word):#returns list of terms
-	print 'sequence:', word
+#	print 'sequence:', word
 	index = 0
+	addends = []
 	while index < len(word):
 		if word[index] == '*' and 'd' in word[index+1]:
 			for _ in range(int(word[index-1])):
-				dparse([word[index+1]])
+				addends.append(sum(dparse([word[index+1]])))
 			index = index + 1
 		elif '(' in word[index]:
 			rparen = 0#find matching right parenthesis
@@ -110,13 +111,34 @@ def dparse(word):#returns list of terms
 			rep = 1 # repeat parenthesized expression rep times
 			if index != 0 and word[index-1] == '*':
 				rep = int(word[index-2])
-			print 'rep:', rep
+#			print 'rep:', rep
 			for _ in range(rep):
-				dparse(word[index+1:rparen]) #skip to rparen+1 after this
+				addends.append(sum(dparse(word[index+1:rparen]))) #skip to rparen+1 after this
 			index = rparen
 		elif 'd' in word[index]:
-			print 'roll:', dice.roll(word[index].split('d'))
+			print dice.roll(word[index].split('d')),#, '=', dice.total()
+			addends.append(dice.total())
+			if index != 0 and word[index-1] == '-':
+				addends[-1] = addends[-1]*-1
 
+#if a term is a digit, then figure out if it's surrounded by +/-
+
+		elif word[index].isdigit():
+			if (index != 0 and word[index-1] in ['+','-']) or (index != len(word)-1 and word[index+1] in ['+','-']):
+				addends.append(int(word[index]))
+				if index != 0 and word[index-1] == '-':
+					addends[-1] = addends[-1]*-1
+		index += 1
+	for x in range(len(addends)):
+		if x != 0:
+			if addends[x] > 0:
+				print '+',
+			else:
+				print '-',	
+		print addends[x],
+	print '=',sum(addends)
+
+	return addends
 #determine modifier(s)
 # get list of all terms on the same nesting level
 #  dice groups become equal to result
@@ -131,7 +153,6 @@ def dparse(word):#returns list of terms
 # 1d4+1 three times
 #
 
-		index += 1
 
 '''
 allowed:
