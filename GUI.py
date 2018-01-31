@@ -23,15 +23,13 @@ ff00ff 8
 
 
 import Tkinter as tk
+from draggable import dragManager as drag
 
 #class Menu(tk.Frame):
 
 root = tk.Tk()
 slots = []
 listing = 0
-dragframe = None
-mousex = 0
-mousey = 0
 
 def boop(self):
 	'''Placeholder, so the buttons do something'''
@@ -45,25 +43,26 @@ def react(event):
 def color(num):
 	return '#00bf00'
 
-def onGrab(event):
-	global mousex
-	global mousey
-	print mousex, mousey, '->',
-	mousex = event.x
-	mousey = event.y
-	print mousex, mousey
-	dragFrame = tk.Frame(tk.Tk())
+#drag.onGrab()
 
-	dragFrame.place()
-#	target.config(in_=dragFrame)
-	# create new window containing a single widget
-
-
-def onDrag(event,target):
-	pass
 
 def fidgetWidget(master=None):
 
+	obj1 = tk.LabelFrame(text='left',height=100,width=100,bg='#df0000')
+	obj1.grid(row=0,column=0)
+
+	obj2 = tk.LabelFrame(text='right',height=100,width=100,bg='#0000df')
+	drag.canDrag(obj2)
+	obj2.grid(row=0,column=1)
+
+	print obj1.winfo_class()
+#	test = tk.LabelFrame(text='test',height=50,width=50)
+#	drag.canDrag(test)
+#	test.grid(in_=obj1)
+#	test.grid(in_=obj2)
+
+
+	'''
 	dropWidgetHeight=50
 	dropWidgetWidth=50
 
@@ -72,10 +71,6 @@ def fidgetWidget(master=None):
 		slots[level].grid(row=level)
 		slots[level].bind('<ButtonPress-1>',onGrab)
 
-#	last = 
-
-
-	'''
 	listing = tk.Listbox(self)
 	listing.insert(tk.END,'testing')
 	listing.insert(tk.END,'testing')
