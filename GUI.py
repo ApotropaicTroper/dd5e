@@ -49,13 +49,14 @@ def color(num):
 def fidgetWidget(master=None):
 
 	obj1 = tk.LabelFrame(text='left',height=100,width=100,bg='#df0000')
+	drag.canDrag(obj1)
 	obj1.grid(row=0,column=0)
 
 	obj2 = tk.LabelFrame(text='right',height=100,width=100,bg='#0000df')
 	drag.canDrag(obj2)
 	obj2.grid(row=0,column=1)
 
-	print obj1.winfo_class()
+#	print obj1.winfo_class()
 #	test = tk.LabelFrame(text='test',height=50,width=50)
 #	drag.canDrag(test)
 #	test.grid(in_=obj1)
