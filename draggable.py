@@ -19,10 +19,12 @@ class dragManager(object):
 		'''Move grabbed widget'''
 		pass
 
+
 	#get widget, get type of widget. Return a copy of the widget
 	#can't pass config() to dragWIdget.config(); error with too many of the parameters
 	@classmethod
 	def copyWidget(cls,widget):
+
 		copyAttrib = {key:widget[key] for key in {'bd','bg','fg','font','height','width','text'}}
 		print copyAttrib
 		cls.dragWidget = tk.LabelFrame(cls.dragFrame)
@@ -37,15 +39,13 @@ class dragManager(object):
 	def onGrab(cls,event):
 		'''Grab a widget to drag'''
 		cls.dragFrame = tk.Toplevel()
-
+		pointerPos = (event.widget.winfo_pointerx(),event.widget.winfo_pointery())
 		cls.copyWidget(event.widget)
-#		print cls.dragCopy['text']
-#		print 'DragFrame:',cls.dragFrame,'\nDragCopy:',cls.dragCopy
 		cls.dragWidget.grid(in_=cls.dragFrame)
+		cls.dragFrame.geometry('%dx%d%+d%+d' % (cls.dragWidget.winfo_reqwidth(),cls.dragWidget.winfo_reqheight(),
+													event.widget.winfo_pointerx(),event.widget.winfo_pointery()))
+		cls.dragFrame.overrideredirect(1)
 		cls.dragFrame.grid()
-#		dragCopy.grid(in_=dragFrame)
-#		print event.widget.config()
-#		print 'Grabbed at',event.x,event.y
 
 #method for setting a widget as draggable?
 	@classmethod
