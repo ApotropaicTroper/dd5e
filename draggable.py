@@ -17,13 +17,11 @@ class dragManager(object):
 	@classmethod
 	def onDrag(cls,event):
 		'''Move grabbed widget'''
-#		cls.mouseX = cls.dragFrame.winfo_pointerx()
-#		cls.mouseY = cls.dragFrame.winfo_pointery()
-#		print cls.mouseX,cls.mouseY
 		print cls.dragFrame.winfo_width(),cls.dragFrame.winfo_height(),cls.dragFrame.winfo_x(),cls.dragFrame.winfo_y()
 		cls.dragFrame.geometry('%dx%d%+d%+d' % (cls.dragFrame.winfo_width(),cls.dragFrame.winfo_height(),
-												event.x_root-cls.mouseX,event.y_root-cls.mouseY))
-#		print cls.mouseX, cls.mouseY
+												event.x_root,event.y_root))
+#												event.x_root-cls.mouseX,event.y_root-cls.mouseY))
+
 
 	#get widget, get type of widget. Return a copy of the widget
 	#can't pass config() to dragWIdget.config(); error with too many of the parameters
@@ -47,7 +45,7 @@ class dragManager(object):
 		cls.copyWidget(event.widget)
 		cls.dragWidget.grid(in_=cls.dragFrame)
 		cls.dragFrame.geometry('%dx%d%+d%+d' % (cls.dragWidget.winfo_reqwidth(),cls.dragWidget.winfo_reqheight(),
-													event.widget.winfo_pointerx()-event.x,event.widget.winfo_pointery()-event.y))
+													event.widget.winfo_pointerx(),event.widget.winfo_pointery()))
 		cls.mouseX = event.x
 		cls.mouseY = event.y
 		cls.dragFrame.overrideredirect(1)
