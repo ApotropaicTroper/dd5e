@@ -52,7 +52,8 @@ class dragManager(object):
 		cls.mouseY = event.y
 		cls.dragFrame.overrideredirect(1)
 		cls.dragFrame.grid()
-		cls.dragFrame.bind('<B1-Motion>',lambda e: cls.onDrag(e))
+		cls.dragFrame.bind('<B1-Motion>', lambda e: cls.onDrag(e))
+		cls.dragFrame.bind('<B1-Leave>', lambda e: cls.onDrag(e))
 		cls.dragFrame.bind('<ButtonRelease-1>', lambda e: cls.onDrop(e))
 
 
@@ -60,7 +61,7 @@ class dragManager(object):
 	@classmethod
 	def canDrag(cls,widget):
 		'''set a given widget to be grabbable'''
-		widget.bind('<ButtonPress-1>',lambda e: cls.onGrab(e))
+		widget.bind('<ButtonPress-1>', lambda e: cls.onGrab(e))
 
 
 #print draggable.onGrab()
