@@ -1,11 +1,22 @@
 import Tkinter as tk
 
+'''
+
+# Motion: only detects while in widget
+# B1-Motion: detects anywhere in screen, but only if clicked in widget
+# Leave: a bit delayed
+# B1-Leave: immediate
+
+'''
+
 class dragManager(object):
 
 	mouseX = 0 #position in window in which widget was grabbed
 	mouseY = 0	
 	dragWidget = None #grabbed widget
 	dragFrame = None #container for widget
+	mouseHeld = False
+
 
 #Remove window, do something with the widget under it
 	@classmethod
@@ -15,12 +26,13 @@ class dragManager(object):
 		cls.dragFrame.destroy()
 		cls.dragWidget = None
 		cls.dragFrame = None
+		cls.mouseHeld = False
 
 #Move window to mouse position (or the same amount as the mouse moved)
 	@classmethod
 	def onDrag(cls,event):
 		'''Move grabbed widget'''
-		print cls.dragFrame.winfo_width(),cls.dragFrame.winfo_height(),cls.dragFrame.winfo_x(),cls.dragFrame.winfo_y()
+#		print cls.dragFrame.winfo_width(),cls.dragFrame.winfo_height(),cls.dragFrame.winfo_x(),cls.dragFrame.winfo_y()
 		cls.dragFrame.geometry('%dx%d%+d%+d' % (cls.dragFrame.winfo_width(),cls.dragFrame.winfo_height(),
 												event.x_root,event.y_root))
 
@@ -52,16 +64,16 @@ class dragManager(object):
 		cls.mouseY = event.y
 		cls.dragFrame.overrideredirect(1)
 		cls.dragFrame.grid()
-		cls.dragFrame.bind('<B1-Motion>', lambda e: cls.onDrag(e))
-		cls.dragFrame.bind('<B1-Leave>', lambda e: cls.onDrag(e))
-		cls.dragFrame.bind('<ButtonRelease-1>', lambda e: cls.onDrop(e))
+#		cls.dragFrame.bind('<Motion>', lambda e: cls.onDrag(e))
+#		cls.dragFrame.bind('<B1-Leave>', lambda e: cls.onDrag(e))
+#		cls.dragFrame.bind('<ButtonRelease-1>', lambda e: cls.onDrop(e))
 
 
-#method for setting a widget as draggable?
+#focus on first click is still the widget passed to this. Given that onDrag and onDrop refer to class variables, can do without changing focus
 	@classmethod
 	def canDrag(cls,widget):
 		'''set a given widget to be grabbable'''
 		widget.bind('<ButtonPress-1>', lambda e: cls.onGrab(e))
+		widget.bind('<B1-Motion>', lambda e: cls.onDrag(e))
+		widget.bind('<ButtonRelease-1>', lambda e: cls.onDrop(e))
 
-
-#print draggable.onGrab()
