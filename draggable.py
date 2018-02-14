@@ -11,7 +11,10 @@ class dragManager(object):
 	@classmethod
 	def onDrop(cls,event):
 		'''Release grabbed widget'''
-		print 'Release'
+		cls.dragWidget.destroy()
+		cls.dragFrame.destroy()
+		cls.dragWidget = None
+		cls.dragFrame = None
 
 #Move window to mouse position (or the same amount as the mouse moved)
 	@classmethod
@@ -20,7 +23,6 @@ class dragManager(object):
 		print cls.dragFrame.winfo_width(),cls.dragFrame.winfo_height(),cls.dragFrame.winfo_x(),cls.dragFrame.winfo_y()
 		cls.dragFrame.geometry('%dx%d%+d%+d' % (cls.dragFrame.winfo_width(),cls.dragFrame.winfo_height(),
 												event.x_root,event.y_root))
-#												event.x_root-cls.mouseX,event.y_root-cls.mouseY))
 
 
 	#get widget, get type of widget. Return a copy of the widget
